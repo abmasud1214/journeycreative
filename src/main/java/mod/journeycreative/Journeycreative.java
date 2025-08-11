@@ -1,5 +1,6 @@
 package mod.journeycreative;
 
+import mod.journeycreative.util.JourneyNetworking;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -20,5 +21,6 @@ public class Journeycreative implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Hello Fabric world!");
+		JourneyNetworking.registerServerPackets();
 	}
 }
