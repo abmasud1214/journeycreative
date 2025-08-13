@@ -1,6 +1,6 @@
 package mod.journeycreative;
 
-import mod.journeycreative.util.JourneyClientNetworking;
+import mod.journeycreative.networking.JourneyClientNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;

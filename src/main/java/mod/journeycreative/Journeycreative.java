@@ -1,6 +1,6 @@
 package mod.journeycreative;
 
-import mod.journeycreative.util.JourneyNetworking;
+import mod.journeycreative.networking.JourneyNetworking;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;

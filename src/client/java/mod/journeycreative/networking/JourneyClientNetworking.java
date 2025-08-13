@@ -1,4 +1,4 @@
-package mod.journeycreative.util;
+package mod.journeycreative.networking;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.network.ClientPlayerEntity;
