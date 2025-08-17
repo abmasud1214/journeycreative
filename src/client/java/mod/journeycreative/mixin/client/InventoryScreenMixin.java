@@ -1,6 +1,6 @@
 package mod.journeycreative.mixin.client;
 
-import mod.journeycreative.JourneyInventoryScreen;
+import mod.journeycreative.screen.JourneyInventoryScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;

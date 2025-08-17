@@ -1,7 +1,8 @@
-package mod.journeycreative;
+package mod.journeycreative.screen;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import mod.journeycreative.PlayerClientUnlocksData;
 import mod.journeycreative.networking.JourneyClientNetworking;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

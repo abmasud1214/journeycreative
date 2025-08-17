@@ -1,4 +1,4 @@
-package mod.journeycreative;
+package mod.journeycreative.screen;
 
 import mod.journeycreative.networking.JourneyClientNetworking;
 import net.minecraft.client.MinecraftClient;
