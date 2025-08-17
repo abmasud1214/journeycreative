@@ -410,7 +410,8 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         this.searchResultTags.clear();
         String searchString = this.searchBox.getText();
         if (searchString.isEmpty()) {
-            ((JourneyScreenHandler) this.handler).itemList.addAll(selectedTab.getDisplayStacks());
+            Collection<ItemStack> filteredItems = filterUnlockedItems(selectedTab.getDisplayStacks());
+            ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
         } else {
             ClientPlayNetworkHandler clientPlayNetworkHandler = this.client.getNetworkHandler();
             if (clientPlayNetworkHandler != null) {
@@ -424,7 +425,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     searchProvider = searchManager.getItemTooltipReloadFuture();
                 }
 
-                ((JourneyScreenHandler) this.handler).itemList.addAll(searchProvider.findAll(searchString.toLowerCase(Locale.ROOT)));
+                //TODO: only add items that are unlocked
+                Collection<ItemStack> filteredItems = filterUnlockedItems((Collection<ItemStack>) searchProvider.findAll(searchString.toLowerCase(Locale.ROOT)));
+                ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
             }
         }
 
@@ -506,6 +509,18 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         return selectedTab.hasScrollbar() && ((JourneyScreenHandler) this.handler).shouldShowScrollbar();
     }
 
+    private Collection<ItemStack> filterUnlockedItems(Collection<ItemStack> unfilteredItems) {
+        Collection<ItemStack> filtered = ItemStackSet.create();
+        for (ItemStack itemStack : unfilteredItems) {
+            Item i = itemStack.getItem();
+            if (PlayerClientUnlocksData.isUnlocked(i)) {
+                filtered.add(itemStack);
+            }
+        }
+
+        return filtered;
+    }
+
     private void setSelectedTab(ItemGroup group) {
         ItemGroup itemGroup = selectedTab;
         selectedTab = group;
@@ -515,6 +530,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         int i;
         int j;
         if (selectedTab.getType() == ItemGroup.Type.HOTBAR) {
+            //TODO: check if creative hotbar makes sense.
             HotbarStorage hotbarStorage = this.client.getCreativeHotbarStorage();
 
             for(i = 0; i < 9; ++i) {
@@ -537,7 +553,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 }
             }
         } else if (selectedTab.getType() == ItemGroup.Type.CATEGORY) {
-            ((JourneyScreenHandler) this.handler).itemList.addAll(selectedTab.getDisplayStacks());
+            //TODO: update getDisplayStacks to only have unlockedItems.
+            Collection<ItemStack> filteredItems = filterUnlockedItems(selectedTab.getDisplayStacks());
+            ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
         }
 
         if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
