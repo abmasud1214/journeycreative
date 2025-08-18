@@ -1,5 +1,8 @@
 package mod.journeycreative;
 
+import mod.journeycreative.items.ModComponents;
+import mod.journeycreative.items.ModItems;
+import mod.journeycreative.items.ResearchCertificateItem;
 import mod.journeycreative.networking.JourneyNetworking;
 import net.fabricmc.api.ModInitializer;
 
@@ -22,5 +25,8 @@ public class Journeycreative implements ModInitializer {
 
 		LOGGER.info("Hello Fabric world!");
 		JourneyNetworking.registerServerPackets();
+
+		ModItems.initialize();
+		ModComponents.initialize();
 	}
 }

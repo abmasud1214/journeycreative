@@ -1,8 +1,11 @@
 package mod.journeycreative;
 
+import mod.journeycreative.items.ModItems;
+import mod.journeycreative.items.ResearchCertificateItem;
 import mod.journeycreative.networking.JourneyClientNetworking;
 import mod.journeycreative.networking.PlayerUnlocksData;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 
 public class JourneycreativeClient implements ClientModInitializer {
 
@@ -10,5 +13,12 @@ public class JourneycreativeClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		JourneyClientNetworking.RegisterClientPackets();
+
+		ItemTooltipCallback.EVENT.register(((itemStack, tooltipContext, tooltipType, list) -> {
+			if (!itemStack.isOf(ModItems.RESEARCH_CERTIFICATE)) {
+				return;
+			}
+			ResearchCertificateItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
+		}));
 	}
 }

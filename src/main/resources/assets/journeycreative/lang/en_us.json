@@ -1,0 +1,7 @@
+{
+  "item.journeycreative.research_certificate": "Research Certificate",
+  "item.journeycreative.research_certificate.research_item": "%s",
+  "item.journeycreative.research_certificate.unlocked": "Unlocked %s in the Journey Inventory",
+  "item.journeycreative.research_certificate.already_unlocked": "%s is already unlocked",
+  "item.journeycreative.research_certificate.cannot_unlock": "%s cannot be unlocked"
+}
