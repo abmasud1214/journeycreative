@@ -3,7 +3,7 @@ package mod.journeycreative;
 import mod.journeycreative.items.ModItems;
 import mod.journeycreative.items.ResearchCertificateItem;
 import mod.journeycreative.networking.JourneyClientNetworking;
-import mod.journeycreative.networking.PlayerUnlocksData;
+import mod.journeycreative.screen.ModScreensClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 
@@ -20,5 +20,7 @@ public class JourneycreativeClient implements ClientModInitializer {
 			}
 			ResearchCertificateItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
 		}));
+
+		ModScreensClient.initialize();
 	}
 }

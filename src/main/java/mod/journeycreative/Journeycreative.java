@@ -1,9 +1,11 @@
 package mod.journeycreative;
 
+import mod.journeycreative.blocks.ModBlocks;
 import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.items.ModItems;
 import mod.journeycreative.items.ResearchCertificateItem;
 import mod.journeycreative.networking.JourneyNetworking;
+import mod.journeycreative.screen.ModScreens;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -28,5 +30,7 @@ public class Journeycreative implements ModInitializer {
 
 		ModItems.initialize();
 		ModComponents.initialize();
+		ModBlocks.initialize();
+		ModScreens.initialize();
 	}
 }
