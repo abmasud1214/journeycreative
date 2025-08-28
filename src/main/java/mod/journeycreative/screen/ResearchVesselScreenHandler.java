@@ -105,4 +105,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             super.onSlotClick(slotIndex, button, actionType, player);
         }
     }
+
+    @Override
+    public void onClosed(PlayerEntity player) {
+        super.onClosed(player);
+        this.inventory.onClose(player);
+    }
 }

@@ -47,7 +47,8 @@ public class ModBlocks {
     public static final Block RESEARCH_VESSEL_BLOCK = register("research_vessel",
             ResearchVesselBlock::new,
             AbstractBlock.Settings.copy(Blocks.CHEST)
-                    .nonOpaque(),
+                    .nonOpaque()
+                    .luminance(state -> state.get(ResearchVesselBlock.OPENED) ? 10 : 0),
             true);
 
     public static final BlockEntityType<ResearchVesselBlockEntity> RESEARCH_VESSEL_BLOCK_ENTITY = register(
