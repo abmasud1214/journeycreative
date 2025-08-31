@@ -209,7 +209,7 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
 
     private void pushEntities(World world, BlockPos pos, BlockState state) {
         if (state.getBlock() instanceof ResearchVesselBlock) {
-            Box box = calculateBoundingBox(animationProgress, pos.toBottomCenterPos());
+            Box box = calculateBoundingBox(animationProgress, new Vec3d(pos.getX(), pos.getY(), pos.getZ()));
             Direction direction = Direction.UP;
             List<Entity> list = world.getOtherEntities((Entity) null, box);
             if (!list.isEmpty()) {
@@ -219,7 +219,7 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
                     Entity entity = (Entity) entities.next();
                     if (entity.getPistonBehavior() != PistonBehavior.IGNORE) {
                         entity.move(MovementType.SHULKER_BOX,
-                                new Vec3d((box.getLengthX() + 0.01) * (double) direction.getOffsetX(),
+                                new Vec3d((box.getLengthX() - 0.01) * (double) direction.getOffsetX(),
                                 (box.getLengthY() + 0.01) * (double) direction.getOffsetY(),
                                         (box.getLengthZ() + 0.01) * (double) direction.getOffsetZ()));
                     }
