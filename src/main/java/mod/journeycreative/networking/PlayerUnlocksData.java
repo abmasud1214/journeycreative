@@ -30,7 +30,7 @@ public class PlayerUnlocksData {
     }
 
     public boolean unlockItem(ItemStack item) {
-        if (unlockedItemKeys.contains(item)) {
+        if (isUnlocked(item)) {
             return false;
         } else {
             ItemStack normalized = normalizeForUnlocks(item);
