@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.command.argument.ItemStackArgumentType;
 import net.minecraft.command.argument.RegistryKeyArgumentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,6 +21,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -97,7 +99,7 @@ public class JourneyNetworking {
         ServerPlayNetworking.registerGlobalReceiver(UnlockItemPayload.ID, (payload, context) -> {
             var player = context.player();
             var server = context.server();
-            var item = payload.itemKey();
+            var item = payload.stack();
 
             context.server().execute(() -> {
 //                StateSaverAndLoader serverState = StateSaverAndLoader.getServerState(server);
@@ -126,15 +128,15 @@ public class JourneyNetworking {
         ServerCommandSource source = ctx.getSource();
         ServerPlayerEntity player = ctx.getSource().getPlayer();
 
-        RegistryKey<Item> itemRegistryKey = RegistryKeyArgumentType.getKey(ctx, "item", RegistryKeys.ITEM, INVALID_ITEM_EXCEPTION);
+        ItemStack unlockStack = ItemStackArgumentType.getItemStackArgument(ctx, "item").createStack(1, false);
 
         StateSaverAndLoader state = StateSaverAndLoader.getServerState(source.getServer());
         PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
 
-        if (playerState.unlockItem(itemRegistryKey)) {
-            player.sendMessage(Text.literal("Unlocked item: " + itemRegistryKey.getValue()), false);
+        if (playerState.unlockItem(unlockStack)) {
+            player.sendMessage(Text.literal("Unlocked item: " + unlockStack.getItem().getName()), false);
         } else {
-            player.sendMessage(Text.literal("Item was already unlocked: " + itemRegistryKey.getValue()), false);
+            player.sendMessage(Text.literal("Item was already unlocked: " + unlockStack.getItem().getName()), false);
         }
 
         source.getServer().execute(() -> {
@@ -166,11 +168,11 @@ public class JourneyNetworking {
         }
     }
 
-    public record UnlockItemPayload(RegistryKey<Item> itemKey) implements CustomPayload {
+    public record UnlockItemPayload(ItemStack stack) implements CustomPayload {
         public static final CustomPayload.Id<UnlockItemPayload> ID =
                 new CustomPayload.Id(UNLOCK_ITEM);
         public static final PacketCodec<RegistryByteBuf, UnlockItemPayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.registryCodec(RegistryKey.createCodec(RegistryKeys.ITEM)), UnlockItemPayload::itemKey, UnlockItemPayload::new);
+                PacketCodec.tuple(ItemStack.PACKET_CODEC, UnlockItemPayload::stack, UnlockItemPayload::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {

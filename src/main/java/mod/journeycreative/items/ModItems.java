@@ -4,6 +4,8 @@ import mod.journeycreative.Journeycreative;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -18,7 +20,7 @@ public class ModItems {
             new Item.Settings()
                     .maxCount(1)
                     .useCooldown(.5f)
-                    .component(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "barrier"))));
+                    .component(ModComponents.RESEARCH_ITEM_COMPONENT, new ItemStack(Items.BARRIER)));
 
     public static Item register(String name, Function<Item.Settings, Item> itemFactory, Item.Settings settings) {
         RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Journeycreative.MOD_ID, name));

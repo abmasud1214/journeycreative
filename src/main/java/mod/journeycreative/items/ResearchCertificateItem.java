@@ -8,6 +8,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.consume.UseAction;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.Registries;
@@ -24,17 +25,17 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public class ResearchCertificateItem extends Item {
-    private static final RegistryKey<Item> barrier_key = RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "barrier"));
+    private static final ItemStack barrier = new ItemStack(Items.BARRIER);
 
     public ResearchCertificateItem(Settings settings) {
         super(settings);
     }
 
-    private static Text getItemName(RegistryKey<Item> itemKey) {
-        Item item = Registries.ITEM.get(itemKey);
+    private static Text getItemName(ItemStack stack) {
+        Item item = stack.getItem();
 
         if (item == null) {
-            return Text.literal("Unknown Item: " + itemKey.getValue());
+            return Text.literal("Unknown Item");
         }
 
         return item.getName();
@@ -45,7 +46,7 @@ public class ResearchCertificateItem extends Item {
 //        boolean exists = true;
         if (exists) {
 //            RegistryKey<Item> research_item = stack.getOrDefault(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "diamond")));
-            RegistryKey<Item> research_item = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
+            ItemStack research_item = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
             tooltip.add(Text.translatable("item.journeycreative.research_certificate.research_item", getItemName(research_item)).formatted(Formatting.GOLD));
         }
     }
@@ -80,9 +81,9 @@ public class ResearchCertificateItem extends Item {
 
         if (!world.isClient && user instanceof PlayerEntity player && exists) {
             PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
-            RegistryKey<Item> research_target = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
+            ItemStack research_target = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
 //            RegistryKey<Item> research_target = stack.getOrDefault(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "diamond")));
-            if (research_target.equals(barrier_key)) {
+            if (ItemStack.areItemsAndComponentsEqual(research_target, barrier)) {
                 player.sendMessage(Text.translatable("item.journeycreative.research_certificate.cannot_unlock", getItemName(research_target)), true);
                 return stack;
             }

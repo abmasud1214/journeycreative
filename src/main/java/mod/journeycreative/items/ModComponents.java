@@ -14,10 +14,10 @@ public class ModComponents {
     public static void initialize() {
     }
 
-    public static final ComponentType<RegistryKey<Item>> RESEARCH_ITEM_COMPONENT = Registry.register(
+    public static final ComponentType<ItemStack> RESEARCH_ITEM_COMPONENT = Registry.register(
             Registries.DATA_COMPONENT_TYPE,
             Identifier.of(Journeycreative.MOD_ID, "research_item_component"),
-            ComponentType.<RegistryKey<Item>>builder().codec(RegistryKey.createCodec(RegistryKeys.ITEM)).build()
+            ComponentType.<ItemStack>builder().codec(ItemStack.CODEC).build()
     );
 
     public static final ComponentType<ItemStack> RESEARCH_VESSEL_TARGET_COMPONENT = Registry.register(

@@ -513,8 +513,8 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private Collection<ItemStack> filterUnlockedItems(Collection<ItemStack> unfilteredItems) {
         Collection<ItemStack> filtered = ItemStackSet.create();
         for (ItemStack itemStack : unfilteredItems) {
-            Item i = itemStack.getItem();
-            if (PlayerClientUnlocksData.isUnlocked(i)) {
+//            Item i = itemStack.getItem();
+            if (PlayerClientUnlocksData.isUnlocked(itemStack)) {
                 filtered.add(itemStack);
             }
         }

@@ -92,12 +92,9 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
                 ContainerComponent container = input.get(DataComponentTypes.CONTAINER);
                 if (!target.isEmpty() && fullContainer(target, container)) {
                     ItemStack output = new ItemStack(ModItems.RESEARCH_CERTIFICATE, 1);
-                    Optional<RegistryKey<Item>> research_item = target.getRegistryEntry().getKey();
-                    if (research_item.isPresent()) {
-                        output.set(ModComponents.RESEARCH_ITEM_COMPONENT, research_item.get());
-                        this.output.setStack(0, output);
-                        return;
-                    }
+                    output.set(ModComponents.RESEARCH_ITEM_COMPONENT, target);
+                    this.output.setStack(0, output);
+                    return;
                 }
             }
         }
