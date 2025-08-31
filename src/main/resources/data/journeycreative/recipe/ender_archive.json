@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "nBn",
+    "ERE",
+    "nNn"
+  ],
+  "key": {
+    "n": "minecraft:netherite_ingot",
+    "B": "minecraft:book",
+    "E": "minecraft:end_crystal",
+    "N": "minecraft:nether_star",
+    "R": "journeycreative:research_vessel"
+  },
+  "result": {
+    "count": 1,
+    "id": "journeycreative:ender_archive"
+  }
+}

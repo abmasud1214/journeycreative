@@ -1,0 +1,13 @@
+{
+  "rewards": {
+    "recipes": [
+      "journeycreative:research_vessel",
+      "journeycreative:ender_archive"
+    ]
+  },
+  "criteria": {
+    "unlocked_by_start": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

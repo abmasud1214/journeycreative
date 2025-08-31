@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#E#",
+    "ESE",
+    "#X#"
+  ],
+  "key": {
+    "#": "minecraft:dragon_breath",
+    "E": "minecraft:ender_eye",
+    "S": "minecraft:shulker_box",
+    "X": "minecraft:end_crystal"
+  },
+  "result": {
+    "count": 1,
+    "id": "journeycreative:research_vessel"
+  }
+}
