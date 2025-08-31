@@ -1,5 +1,6 @@
 package mod.journeycreative;
 
+import mod.journeycreative.blocks.EnderArchiveEntityRenderer;
 import mod.journeycreative.blocks.ModBlocks;
 import mod.journeycreative.blocks.ModModelLayers;
 import mod.journeycreative.blocks.ResearchVesselEntityRenderer;
@@ -32,5 +33,6 @@ public class JourneycreativeClient implements ClientModInitializer {
 		ModModelLayers.initialize();
 
 		BlockEntityRendererFactories.register(ModBlocks.RESEARCH_VESSEL_BLOCK_ENTITY, ResearchVesselEntityRenderer::new);
+		BlockEntityRendererFactories.register(ModBlocks.ENDER_ARCHIVE_BLOCK_ENTITY, EnderArchiveEntityRenderer::new);
 	}
 }

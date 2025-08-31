@@ -38,7 +38,6 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
     }
 
     public void render(ResearchVesselBlockEntity researchVesselBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, Vec3d vec3d) {
-        SpriteIdentifier spriteIdentifier = TexturedRenderLayers.BLOCK_SPRITE_MAPPER.map(TEXTURE);
         Direction direction = Direction.UP;
 
         float g = researchVesselBlockEntity.getAnimationProgress(f);

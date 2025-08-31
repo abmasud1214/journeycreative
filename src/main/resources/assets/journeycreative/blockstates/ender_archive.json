@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": {"model": "journeycreative:block/ender_archive"},
+    "facing=south": {"model": "journeycreative:block/ender_archive", "y": 180},
+    "facing=west": {"model": "journeycreative:block/ender_archive", "y": 270},
+    "facing=east": {"model": "journeycreative:block/ender_archive", "y": 90}
+  }
+}

@@ -6,5 +6,8 @@
   "item.journeycreative.research_certificate.cannot_unlock": "%s cannot be unlocked",
   "container.journeycreative.research_vessel": "Research Vessel",
   "block.journeycreative.research_vessel": "Research Vessel",
-  "item.journeycreative.research_vessel": "Research Vessel"
+  "item.journeycreative.research_vessel": "Research Vessel",
+  "block.journeycreative.ender_archive": "Ender Archive",
+  "item.journeycreative.ender_archive": "Ender Archive",
+  "container.journeycreative.ender_archive": "Research New Items"
 }

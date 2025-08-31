@@ -11,7 +11,8 @@
               "function": "minecraft:copy_components",
               "include": [
                 "minecraft:custom_name",
-                "minecraft:container"
+                "minecraft:container",
+                "journeycreative:research_vessel_target_component"
               ],
               "source": "block_entity"
             }

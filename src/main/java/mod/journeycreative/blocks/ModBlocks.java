@@ -57,6 +57,18 @@ public class ModBlocks {
             RESEARCH_VESSEL_BLOCK
     );
 
+    public static final Block ENDER_ARCHIVE_BLOCK = register("ender_archive",
+            EnderArchiveBlock::new,
+            AbstractBlock.Settings.copy(Blocks.CHISELED_BOOKSHELF)
+                    .luminance(state -> 5),
+            true);
+
+    public static final BlockEntityType<EnderArchiveBlockEntity> ENDER_ARCHIVE_BLOCK_ENTITY = register(
+            "ender_archive",
+            EnderArchiveBlockEntity::new,
+            ENDER_ARCHIVE_BLOCK
+    );
+
     private static RegistryKey<Block> keyOfBlock(String name) {
         return RegistryKey.of(RegistryKeys.BLOCK, Identifier.of(Journeycreative.MOD_ID, name));
     }
@@ -68,5 +80,7 @@ public class ModBlocks {
     public static void initialize() {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
                 .register(itemGroup -> itemGroup.add(ModBlocks.RESEARCH_VESSEL_BLOCK.asItem()));
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
+                .register(itemGroup -> itemGroup.add(ModBlocks.ENDER_ARCHIVE_BLOCK.asItem()));
     }
 }

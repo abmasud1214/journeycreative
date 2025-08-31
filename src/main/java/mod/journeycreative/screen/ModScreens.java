@@ -12,6 +12,10 @@ public class ModScreens {
             Registry.register(Registries.SCREEN_HANDLER, Identifier.of(Journeycreative.MOD_ID, "research_vessel"),
                     new ScreenHandlerType<>(ResearchVesselScreenHandler::new, FeatureSet.empty()));
 
+    public static final ScreenHandlerType<EnderArchiveScreenHandler> ENDER_ARCHIVE_SCREEN_HANDLER =
+            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(Journeycreative.MOD_ID, "ender_archive"),
+                    new ScreenHandlerType<>(EnderArchiveScreenHandler::new, FeatureSet.empty()));
+
     public static void initialize() {
 
     }

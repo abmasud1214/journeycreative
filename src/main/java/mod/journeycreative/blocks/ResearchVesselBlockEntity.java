@@ -1,6 +1,7 @@
 package mod.journeycreative.blocks;
 
 import mod.journeycreative.Journeycreative;
+import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.screen.ResearchVesselScreenHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -8,6 +9,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.component.ComponentMap;
+import net.minecraft.component.ComponentsAccess;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -271,6 +274,23 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
                 //TODO: Add sound event
             }
         }
+    }
+
+    @Override
+    protected void readComponents(ComponentsAccess components) {
+        super.readComponents(components);
+        this.target = components.getOrDefault(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT, ItemStack.EMPTY);
+    }
+
+    @Override
+    protected void addComponents(ComponentMap.Builder componentMapBuilder) {
+        super.addComponents(componentMapBuilder);
+        componentMapBuilder.add(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT, getTarget());
+    }
+
+    @Override
+    public void removeFromCopiedStackData(WriteView view) {
+        view.remove("target");
     }
 
     public static enum AnimationStage {
