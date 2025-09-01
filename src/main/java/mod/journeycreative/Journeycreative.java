@@ -53,6 +53,9 @@ public class Journeycreative implements ModInitializer {
 						} else if (id.getPath().endsWith("research_prerequisite.json")) {
 							ResearchConfig.loadResearchPrerequisites(reader);
 							LOGGER.info("Loaded research prerequisites from {}", id);
+						} else if (id.getPath().endsWith("research_prohibited.json")) {
+							ResearchConfig.loadResearchProhibited(reader);
+							LOGGER.info("Loaded prohibited research items from {}", id);
 						}
 					} catch(Exception e) {
 						LOGGER.error("Error occured while loading resource json" + id.toString(), e);

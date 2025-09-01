@@ -1,19 +1,18 @@
 package mod.journeycreative;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.util.Identifier;
 
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ResearchConfig {
     public static final Map<Identifier, Integer> RESEARCH_AMOUNT_REQUIREMENTS = new HashMap<>();
     public static final Map<Identifier, List<Identifier>> RESEARCH_PREREQUISITES = new HashMap<>();
+    public static final Set<Identifier> RESEARCH_PROHIBITED = new HashSet<>();
 
     public static void loadResearchAmounts(Reader reader) {
         JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
@@ -42,5 +41,11 @@ public class ResearchConfig {
         }
     }
 
-
+    public static void loadResearchProhibited(Reader reader) {
+        JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
+        JsonArray prohibited = root.getAsJsonArray("unresearchable");
+        for (JsonElement element : prohibited) {
+            RESEARCH_PROHIBITED.add(Identifier.of(element.getAsString()));
+        }
+    }
 }

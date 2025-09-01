@@ -25,6 +25,7 @@ import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ResearchCertificateItem extends Item {
     private static final ItemStack barrier = new ItemStack(Items.BARRIER);
@@ -85,10 +86,13 @@ public class ResearchCertificateItem extends Item {
             PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
             ItemStack research_target = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
 //            RegistryKey<Item> research_target = stack.getOrDefault(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "diamond")));
-            if (ItemStack.areItemsAndComponentsEqual(research_target, barrier)) {
+
+            Set<Identifier> prohibited = ResearchConfig.RESEARCH_PROHIBITED;
+            if (prohibited.contains(Registries.ITEM.getId(research_target.getItem()))) {
                 player.sendMessage(Text.translatable("item.journeycreative.research_certificate.cannot_unlock", getItemName(research_target)), true);
                 return stack;
             }
+
             List<Identifier> prerequisites = ResearchConfig.RESEARCH_PREREQUISITES.getOrDefault(
                     Registries.ITEM.getId(research_target.getItem()), new ArrayList<Identifier>()
             );

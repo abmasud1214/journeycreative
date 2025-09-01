@@ -1,0 +1,7 @@
+{
+  "unresearchable": [
+    "minecraft:air",
+    "minecraft:barrier",
+    "journeycreative:research_certificate"
+  ]
+}
