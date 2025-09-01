@@ -137,19 +137,21 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         ClickType clickType = button == 0 ? ClickType.LEFT : ClickType.RIGHT;
         ItemStack inputStack;
         if (actionType != SlotActionType.QUICK_MOVE && clickType == ClickType.LEFT) {
-            inputStack = stack.split(1);
+            inputStack = stack.copyWithCount(1);
         } else {
             inputStack = stack;
         }
 
+        int inserted = 0;
         if (inventory.isEmpty()) {
-            inventory.insertIntoInventory(inputStack);
+            inserted = inventory.insertIntoInventory(inputStack);
         } else {
             ItemStack target = this.inventory.getTarget();
             if (ItemStack.areItemsAndComponentsEqual(target, inputStack)) {
-                inventory.insertIntoInventory(inputStack);
+                inserted = inventory.insertIntoInventory(inputStack);
             }
         }
+        stack.decrement(inserted);
     }
 
     @Override

@@ -88,7 +88,7 @@ public interface ResearchVesselInventory extends Inventory {
 
     }
 
-    default void insertIntoInventory(ItemStack stack) {
-
+    default int insertIntoInventory(ItemStack stack) {
+        return 0;
     }
 }

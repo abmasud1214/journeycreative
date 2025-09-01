@@ -169,7 +169,7 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
     }
 
     @Override
-    public void insertIntoInventory(ItemStack stack) {
+    public int insertIntoInventory(ItemStack stack) {
         int quantity = this.count(stack.getItem());
         int capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(
                 Registries.ITEM.getId(stack.getItem()),27 * stack.getMaxCount());
@@ -188,7 +188,7 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
                 quantity = Math.max(quantity, 0);
             }
         }
-        stack.decrement(split);
+        return split;
     }
 
     public float getAnimationProgress(float tickProgress) {
