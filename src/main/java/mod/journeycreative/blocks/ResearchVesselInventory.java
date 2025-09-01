@@ -79,4 +79,16 @@ public interface ResearchVesselInventory extends Inventory {
     default ItemStack getTarget() {
         return ItemStack.EMPTY;
     }
+
+    default int getCapacity() {
+        return 0;
+    }
+
+    default void refactorInventory(ItemStack stack) {
+
+    }
+
+    default void insertIntoInventory(ItemStack stack) {
+
+    }
 }

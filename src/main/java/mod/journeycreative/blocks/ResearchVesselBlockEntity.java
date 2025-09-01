@@ -1,6 +1,7 @@
 package mod.journeycreative.blocks;
 
 import mod.journeycreative.Journeycreative;
+import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.screen.ResearchVesselScreenHandler;
 import net.minecraft.block.Block;
@@ -19,6 +20,7 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundCategory;
@@ -39,6 +41,7 @@ import java.util.List;
 public class ResearchVesselBlockEntity extends LootableContainerBlockEntity implements NamedScreenHandlerFactory, SidedInventory, ResearchVesselInventory {
     private DefaultedList<ItemStack> inventory = DefaultedList.ofSize(27, ItemStack.EMPTY);
     private ItemStack target = ItemStack.EMPTY;
+    private int capacity = 0;
     private float animationProgress;
     private float lastAnimationProgress;
     private AnimationStage animationStage;
@@ -129,14 +132,63 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
             if (!stack.isEmpty()) {
                 empty = false;
                 target = stack;
+                capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(
+                        Registries.ITEM.getId(stack.getItem()),27 * stack.getMaxCount());
+                capacity = Math.min(capacity, 27 * stack.getMaxCount());
             }
         }
 
         if (empty) {
             target = ItemStack.EMPTY;
+            capacity = 0;
         }
 
         return target;
+    }
+
+    @Override
+    public int getCapacity() {
+        ItemStack t = getTarget();
+        return capacity;
+    }
+
+    @Override
+    public void refactorInventory(ItemStack stack) {
+        int quantity = this.count(stack.getItem());
+        for (int i = 0; i < 27; i++) {
+            if (quantity == 0) {
+                inventory.set(i, ItemStack.EMPTY);
+            } else {
+                int splitNumber = Math.min(stack.getMaxCount(), quantity);
+                ItemStack split = stack.copyWithCount(splitNumber);
+                inventory.set(i, split);
+                quantity -= splitNumber;
+                quantity = Math.max(quantity, 0);
+            }
+        }
+    }
+
+    @Override
+    public void insertIntoInventory(ItemStack stack) {
+        int quantity = this.count(stack.getItem());
+        int capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(
+                Registries.ITEM.getId(stack.getItem()),27 * stack.getMaxCount());
+        capacity = Math.min(capacity, 27 * stack.getMaxCount());
+        int remaining = capacity - quantity;
+        int split = Math.min(remaining, stack.getCount());
+        quantity += split;
+        for (int i = 0; i < 27; i++) {
+            if (quantity == 0) {
+                inventory.set(i, ItemStack.EMPTY);
+            } else {
+                int splitNumber = Math.min(stack.getMaxCount(), quantity);
+                ItemStack splitStack = stack.copyWithCount(splitNumber);
+                inventory.set(i, splitStack);
+                quantity -= splitNumber;
+                quantity = Math.max(quantity, 0);
+            }
+        }
+        stack.decrement(split);
     }
 
     public float getAnimationProgress(float tickProgress) {

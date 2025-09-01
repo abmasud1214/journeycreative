@@ -1,5 +1,6 @@
 package mod.journeycreative.screen;
 
+import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.blocks.EnderArchiveBlockEntity;
 import mod.journeycreative.blocks.ModBlocks;
 import mod.journeycreative.items.ModComponents;
@@ -15,6 +16,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RecipeManager;
 import net.minecraft.recipe.RecipePropertySet;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ForgingScreenHandler;
 import net.minecraft.screen.Property;
@@ -125,7 +127,8 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
 
     private static boolean fullContainer(ItemStack target, ContainerComponent container) {
         Iterable<ItemStack> containerStacks = container.iterateNonEmpty();
-        int full = 27 * target.getMaxCount();
+        int full = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(Registries.ITEM.getId(target.getItem()),27 * target.getMaxCount());
+        full = Math.min(full, 27 * target.getMaxCount());
         for (ItemStack stack : containerStacks) {
             full -= stack.getCount();
         }
