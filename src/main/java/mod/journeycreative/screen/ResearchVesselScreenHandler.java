@@ -134,6 +134,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
     }
 
     private void onContainerInsertClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, ItemStack stack) {
+        if (!ResearchVesselSlot.canInsertItem(stack)) {
+            return;
+        }
+
         ClickType clickType = button == 0 ? ClickType.LEFT : ClickType.RIGHT;
         ItemStack inputStack;
         if (actionType != SlotActionType.QUICK_MOVE && clickType == ClickType.LEFT) {
