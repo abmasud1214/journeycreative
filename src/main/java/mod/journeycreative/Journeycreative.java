@@ -50,6 +50,9 @@ public class Journeycreative implements ModInitializer {
 						if (id.getPath().endsWith("research_amount.json")) {
 							ResearchConfig.loadResearchAmounts(reader);
 							LOGGER.info("Loaded research requirements from {}", id);
+						} else if (id.getPath().endsWith("research_prerequisite.json")) {
+							ResearchConfig.loadResearchPrerequisites(reader);
+							LOGGER.info("Loaded research prerequisites from {}", id);
 						}
 					} catch(Exception e) {
 						LOGGER.error("Error occured while loading resource json" + id.toString(), e);

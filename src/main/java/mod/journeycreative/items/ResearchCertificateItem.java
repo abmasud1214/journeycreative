@@ -1,5 +1,6 @@
 package mod.journeycreative.items;
 
+import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.networking.JourneyNetworking;
 import mod.journeycreative.networking.PlayerUnlocksData;
 import mod.journeycreative.networking.StateSaverAndLoader;
@@ -22,6 +23,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResearchCertificateItem extends Item {
@@ -87,6 +89,25 @@ public class ResearchCertificateItem extends Item {
                 player.sendMessage(Text.translatable("item.journeycreative.research_certificate.cannot_unlock", getItemName(research_target)), true);
                 return stack;
             }
+            List<Identifier> prerequisites = ResearchConfig.RESEARCH_PREREQUISITES.getOrDefault(
+                    Registries.ITEM.getId(research_target.getItem()), new ArrayList<Identifier>()
+            );
+            ArrayList<String> prereqs = new ArrayList<>();
+            if (!prerequisites.isEmpty()) {
+                for (Identifier id : prerequisites) {
+                    ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
+                    if (!playerState.isUnlocked(prereqStack)) {
+                        prereqs.add(getItemName(prereqStack).getString());
+                    }
+                }
+            }
+            if (!prereqs.isEmpty()) {
+                String prereqString = "[" + String.join(", ", prereqs) + "]";
+                player.sendMessage(Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqString, getItemName(research_target)), false);
+                return stack;
+            }
+
+
 
             boolean unlocked = playerState.unlockItem(research_target);
             ServerPlayerEntity playerEntity = world.getServer().getPlayerManager().getPlayer(player.getUuid());

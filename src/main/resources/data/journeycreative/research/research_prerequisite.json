@@ -1,0 +1,84 @@
+{
+  "prerequisites": {
+    "minecraft:iron_nugget": [
+      "minecraft:iron_ingot"
+    ],
+    "minecraft:gold_nugget": [
+      "minecraft:gold_ingot"
+    ],
+    "journeycreative:research_vessel": [
+      "minecraft:dragon_breath",
+      "minecraft:ender_eye",
+      "minecraft:shulker_box",
+      "minecraft:end_crystal"
+    ],
+    "minecraft:shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:white_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:orange_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:magenta_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:light_blue_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:yellow_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:lime_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:pink_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:gray_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:light_gray_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:cyan_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:purple_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:blue_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:brown_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:green_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:red_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ],
+    "minecraft:black_shulker_box": [
+      "minecraft:shulker_shell",
+      "minecraft:chest"
+    ]
+  }
+}
