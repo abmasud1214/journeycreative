@@ -8,7 +8,10 @@
   "container.journeycreative.research_vessel": "Research Vessel",
   "block.journeycreative.research_vessel": "Research Vessel",
   "item.journeycreative.research_vessel": "Research Vessel",
+  "item.journeycreative.research_vessel.tooltip": "Fill this container with items you want to research",
+  "item.journeycreative.research_vessel.tooltip.status": "%d / %d %s",
   "block.journeycreative.ender_archive": "Ender Archive",
   "item.journeycreative.ender_archive": "Ender Archive",
+  "item.journeycreative.ender_archive.tooptip": "Use a %s to get a %s",
   "container.journeycreative.ender_archive": "Research New Items"
 }

@@ -1,7 +1,9 @@
 package mod.journeycreative.blocks;
 
 import mod.journeycreative.Journeycreative;
+import mod.journeycreative.items.EnderArchiveBlockItem;
 import mod.journeycreative.items.ModComponents;
+import mod.journeycreative.items.ResearchVesselBlockItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock;
@@ -22,32 +24,22 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class ModBlocks {
-    private static Block register(String name, Function<AbstractBlock.Settings,
-            Block> blockFactory, AbstractBlock.Settings settings, boolean shouldRegisterItem) {
-        return register(name, blockFactory, settings, shouldRegisterItem, null);
+    private static Block register(String name, Function<AbstractBlock.Settings, Block> blockFactory,
+                                  AbstractBlock.Settings blockSettings){
+        RegistryKey<Block> blockKey = keyOfBlock(name);
+        Block block = blockFactory.apply(blockSettings.registryKey(blockKey));
+        return Registry.register(Registries.BLOCK, blockKey, block);
     }
 
-    private static Block register(String name, Function<AbstractBlock.Settings, Block> blockFactory,
-                                  AbstractBlock.Settings settings, boolean shouldRegisterItem,
-                                  @Nullable Function<Item.Settings, Item.Settings> itemSettingsModifier) {
-        RegistryKey<Block> blockKey = keyOfBlock(name);
-        Block block = blockFactory.apply(settings.registryKey(blockKey));
-
-        if (shouldRegisterItem) {
-            RegistryKey<Item> itemKey = keyOfItem(name);
-            Item.Settings itemSettings = new Item.Settings().registryKey(itemKey);
-            if (itemSettingsModifier != null) {
-                itemSettings = itemSettingsModifier.apply(itemSettings);
-            }
-
-            BlockItem blockItem = new BlockItem(block, itemSettings);
-            Registry.register(Registries.ITEM, itemKey, blockItem);
-        }
-
-        return Registry.register(Registries.BLOCK, blockKey, block);
+    private static BlockItem register(String name, Block block, BiFunction<Block, Item.Settings, BlockItem> itemFactory,
+                                      Item.Settings itemSettings) {
+        RegistryKey<Item> itemRegistryKey = keyOfItem(name);
+        BlockItem item = itemFactory.apply(block, itemSettings.registryKey(itemRegistryKey));
+        return Registry.register(Registries.ITEM, itemRegistryKey, item);
     }
 
     private static <T extends BlockEntity> BlockEntityType<T> register(
@@ -63,9 +55,17 @@ public class ModBlocks {
             ResearchVesselBlock::new,
             AbstractBlock.Settings.copy(Blocks.CHEST)
                     .nonOpaque()
-                    .luminance(state -> state.get(ResearchVesselBlock.OPENED) ? 10 : 0),
-            true,
-            settings -> settings.maxCount(1).component(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT).component(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT, ItemStack.EMPTY));
+                    .luminance(state -> state.get(ResearchVesselBlock.OPENED) ? 10 : 0)
+    );
+
+    public static final BlockItem RESEARCH_VESSEL_BLOCK_ITEM = register("research_vessel",
+            RESEARCH_VESSEL_BLOCK,
+            ResearchVesselBlockItem::new,
+            new Item.Settings()
+                    .maxCount(1)
+                    .component(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT)
+                    .component(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT, ItemStack.EMPTY)
+    );
 
     public static final BlockEntityType<ResearchVesselBlockEntity> RESEARCH_VESSEL_BLOCK_ENTITY = register(
             "research_vessel",
@@ -76,8 +76,14 @@ public class ModBlocks {
     public static final Block ENDER_ARCHIVE_BLOCK = register("ender_archive",
             EnderArchiveBlock::new,
             AbstractBlock.Settings.copy(Blocks.CHISELED_BOOKSHELF)
-                    .luminance(state -> 5),
-            true);
+                    .luminance(state -> 5)
+    );
+
+    public static final BlockItem ENDER_ARCHIVE_BLOCK_ITEM = register("ender_archive",
+            ENDER_ARCHIVE_BLOCK,
+            EnderArchiveBlockItem::new,
+            new Item.Settings()
+    );
 
     public static final BlockEntityType<EnderArchiveBlockEntity> ENDER_ARCHIVE_BLOCK_ENTITY = register(
             "ender_archive",
