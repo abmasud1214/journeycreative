@@ -199,10 +199,10 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 }
 
                 if (slot == this.deleteItemSlot && bl) {
-                    for (int i = 0; i < this.client.player.playerScreenHandler.getStacks().size(); ++i) {
-                        this.client.player.playerScreenHandler.getSlot(i).setStackNoCallbacks(ItemStack.EMPTY);
-                        JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, i);
-                    }
+//                    for (int i = 0; i < this.client.player.playerScreenHandler.getStacks().size(); ++i) {
+//                        this.client.player.playerScreenHandler.getSlot(i).setStackNoCallbacks(ItemStack.EMPTY);
+//                        JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, i);
+//                    }
                 } else {
                     ItemStack itemStack2;
                     if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
