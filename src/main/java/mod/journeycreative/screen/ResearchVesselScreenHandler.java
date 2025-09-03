@@ -138,6 +138,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             return;
         }
 
+        if (actionType == SlotActionType.SWAP && (button == 40)) { // BLOCK SWAP FROM F KEY BECAUSE OF WEIRD BUG.
+            return;
+        }
+
         ClickType clickType = button == 0 ? ClickType.LEFT : ClickType.RIGHT;
         ItemStack inputStack;
         if (actionType != SlotActionType.QUICK_MOVE && clickType == ClickType.LEFT) {
