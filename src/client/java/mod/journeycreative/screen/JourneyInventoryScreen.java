@@ -2,6 +2,7 @@ package mod.journeycreative.screen;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import mod.journeycreative.Journeycreative;
 import mod.journeycreative.PlayerClientUnlocksData;
 import mod.journeycreative.networking.JourneyClientNetworking;
 import net.fabricmc.api.EnvType;
@@ -58,6 +59,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private static final Identifier[] TAB_TOP_SELECTED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/creative_inventory/tab_top_selected_1"), Identifier.ofVanilla("container/creative_inventory/tab_top_selected_2"), Identifier.ofVanilla("container/creative_inventory/tab_top_selected_3"), Identifier.ofVanilla("container/creative_inventory/tab_top_selected_4"), Identifier.ofVanilla("container/creative_inventory/tab_top_selected_5"), Identifier.ofVanilla("container/creative_inventory/tab_top_selected_6"), Identifier.ofVanilla("container/creative_inventory/tab_top_selected_7")};
     private static final Identifier[] TAB_BOTTOM_UNSELECTED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_1"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_2"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_3"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_4"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_5"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_6"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_unselected_7")};
     private static final Identifier[] TAB_BOTTOM_SELECTED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_1"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_2"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_3"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_4"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_5"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_6"), Identifier.ofVanilla("container/creative_inventory/tab_bottom_selected_7")};
+    private static final Identifier JOURNEY_INVENTORY_TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/gui/gui_journey_inventory.png");
     private static final int ROWS_COUNT = 5;
     private static final int COLUMNS_COUNT = 9;
     private static final int TAB_WIDTH = 26;
@@ -198,16 +200,28 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     return;
                 }
 
-                if (slot == this.deleteItemSlot && bl) {
-//                    for (int i = 0; i < this.client.player.playerScreenHandler.getStacks().size(); ++i) {
-//                        this.client.player.playerScreenHandler.getSlot(i).setStackNoCallbacks(ItemStack.EMPTY);
-//                        JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, i);
-//                    }
+                if (slot == this.deleteItemSlot && bl && this.deleteItemSlot.hasStack()) {
+                    if(this.handler.insertItem(this.deleteItemSlot.getStack(), 9, 46, false)) {
+                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                    }
                 } else {
                     ItemStack itemStack2;
                     if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
                         if (slot == this.deleteItemSlot) {
-                            ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
+                            if (((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && this.deleteItemSlot.hasStack()) {
+                                itemStack2 = this.deleteItemSlot.getStack();
+                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                                ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2);
+                            } else {
+                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                                this.deleteItemSlot.setStack(((JourneyScreenHandler) this.handler).getCursorStack());
+                                ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
+                            }
+                        } else if (bl && slot != null && slot.hasStack()) {
+                            itemStack2 = slot.getStack();
+                            this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                            this.deleteItemSlot.setStack(itemStack2);
+                            slot.setStack(ItemStack.EMPTY);
                         } else if (actionType == SlotActionType.THROW && slot != null && slot.hasStack()) {
                             itemStack = slot.takeStack(button == 0 ? 1 : slot.getStack().getMaxCount());
                             itemStack2 = slot.getStack();
@@ -426,7 +440,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     searchProvider = searchManager.getItemTooltipReloadFuture();
                 }
 
-                //TODO: only add items that are unlocked
                 Collection<ItemStack> filteredItems = filterUnlockedItems((Collection<ItemStack>) searchProvider.findAll(searchString.toLowerCase(Locale.ROOT)));
                 ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
             }
@@ -554,7 +567,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 }
             }
         } else if (selectedTab.getType() == ItemGroup.Type.CATEGORY) {
-            //TODO: update getDisplayStacks to only have unlockedItems.
             Collection<ItemStack> filteredItems = filterUnlockedItems(selectedTab.getDisplayStacks());
             ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
         }
@@ -742,7 +754,11 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             }
         }
 
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, selectedTab.getTexture(), this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+        if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, JourneyInventoryScreen.JOURNEY_INVENTORY_TEXTURE, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+        } else {
+            context.drawTexture(RenderPipelines.GUI_TEXTURED, selectedTab.getTexture(), this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+        }
         this.searchBox.render(context, mouseX, mouseY, deltaTicks);
         int i = this.x + 175;
         int j = this.y + 18;
@@ -930,6 +946,89 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
         public void setCursorStack(ItemStack stack) {
             this.parent.setCursorStack(stack);
+        }
+
+        protected boolean insertItem(ItemStack stack, int startIndex, int endIndex, boolean fromLast) {
+            boolean bl = false;
+            int i = startIndex;
+            if (fromLast) {
+                i = endIndex - 1;
+            }
+
+            Slot slot;
+            ItemStack itemStack;
+            int j;
+            if (stack.isStackable()) {
+                while(!stack.isEmpty()) {
+                    if (fromLast) {
+                        if (i < startIndex) {
+                            break;
+                        }
+                    } else if (i >= endIndex) {
+                        break;
+                    }
+
+                    slot = (Slot)this.slots.get(i);
+                    itemStack = slot.getStack();
+                    if (!itemStack.isEmpty() && ItemStack.areItemsAndComponentsEqual(stack, itemStack)) {
+                        j = itemStack.getCount() + stack.getCount();
+                        int k = slot.getMaxItemCount(itemStack);
+                        if (j <= k) {
+                            stack.setCount(0);
+                            itemStack.setCount(j);
+                            slot.markDirty();
+                            bl = true;
+                        } else if (itemStack.getCount() < k) {
+                            stack.decrement(k - itemStack.getCount());
+                            itemStack.setCount(k);
+                            slot.markDirty();
+                            bl = true;
+                        }
+                    }
+
+                    if (fromLast) {
+                        --i;
+                    } else {
+                        ++i;
+                    }
+                }
+            }
+
+            if (!stack.isEmpty()) {
+                if (fromLast) {
+                    i = endIndex - 1;
+                } else {
+                    i = startIndex;
+                }
+
+                while(true) {
+                    if (fromLast) {
+                        if (i < startIndex) {
+                            break;
+                        }
+                    } else if (i >= endIndex) {
+                        break;
+                    }
+
+                    slot = (Slot)this.slots.get(i);
+                    itemStack = slot.getStack();
+                    if (itemStack.isEmpty() && slot.canInsert(stack)) {
+                        j = slot.getMaxItemCount(stack);
+                        slot.setStack(stack.split(Math.min(stack.getCount(), j)));
+                        slot.markDirty();
+                        bl = true;
+                        break;
+                    }
+
+                    if (fromLast) {
+                        --i;
+                    } else {
+                        ++i;
+                    }
+                }
+            }
+
+            return bl;
         }
 
     }
