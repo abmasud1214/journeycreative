@@ -8,6 +8,8 @@ import mod.journeycreative.networking.JourneyClientNetworking;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.itemgroup.v1.FabricCreativeInventoryScreen;
+import net.fabricmc.fabric.impl.client.itemgroup.FabricCreativeGuiComponents;
+import net.fabricmc.fabric.impl.itemgroup.FabricItemGroupImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
@@ -31,7 +33,9 @@ import net.minecraft.item.*;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -69,6 +73,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     static final SimpleInventory INVENTORY = new SimpleInventory(45);
     private static final Text DELETE_ITEM_SLOT_TEXT = Text.translatable("inventory.binSlot");
     private static ItemGroup selectedTab = ItemGroups.getDefaultTab();
+    private static int currentPage = 0;
     private float scrollPosition;
     private boolean scrolling;
     private TextFieldWidget searchBox;
@@ -82,6 +87,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private final Set<TagKey<Item>> searchResultTags = new HashSet();
     private final boolean operatorTabEnabled;
     private final StatusEffectsDisplay statusEffectsDisplay;
+    private final Map<ItemGroup, Integer> itemGroupPage = new HashMap();
 
     public JourneyInventoryScreen(ClientPlayerEntity player, FeatureSet enabledFeatures, boolean operatorTabEnabled) {
         super(new JourneyScreenHandler(player), player.getInventory(), ScreenTexts.EMPTY);
@@ -320,6 +326,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     @Override
     protected  void init() {
         super.init();
+        paginateGroups();
         TextRenderer var10003 = this.textRenderer;
         int var10004 = this.x + 82;
         int var10005 = this.y + 6;
@@ -329,10 +336,16 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         this.searchBox.setDrawsBackground(false);
         this.searchBox.setVisible(false);
         this.searchBox.setEditableColor(-1);
+        currentPage = this.getPage(selectedTab);
+        int xpos = this.x + 171;
+        int ypos = this.y + 4;
         this.addSelectableChild(this.searchBox);
         ItemGroup itemGroup = selectedTab;
         selectedTab = ItemGroups.getDefaultTab();
         this.setSelectedTab(itemGroup);
+        JourneyInventoryScreen self = (JourneyInventoryScreen) this;
+        this.addDrawableChild(new JourneyCreativeGuiComponents.ItemGroupButtonWidget(xpos + 10, ypos, JourneyCreativeGuiComponents.Type.NEXT, self));
+        this.addDrawableChild(new JourneyCreativeGuiComponents.ItemGroupButtonWidget(xpos, ypos, JourneyCreativeGuiComponents.Type.PREVIOUS, self));
         this.client.player.playerScreenHandler.removeListener(this.listener);
         this.listener = new JourneyInventoryListener(this.client);
         this.client.player.playerScreenHandler.addListener(this.listener);
@@ -385,6 +398,13 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     }
 
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 266) {
+            if (this.switchToPreviousPage()) {
+                return true;
+            } else if (keyCode == 267 && this.switchToNextPage()) {
+                return true;
+            }
+        }
         this.ignoreTypedCharacter = false;
         if (selectedTab.getType() != ItemGroup.Type.SEARCH) {
             if (this.client.options.chatKey.matchesKey(keyCode, scanCode)) {
@@ -413,6 +433,109 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 }
             }
         }
+    }
+
+    private boolean isGroupVisible(ItemGroup group) { // FROM FABRIC API FOR CREATIVE INVENTORY
+        return group.shouldDisplay() && currentPage == this.getPage(group);
+    }
+
+    public int getPage(ItemGroup group) {
+        if (JourneyCreativeGuiComponents.COMMON_GROUPS.contains(group)) {
+            return currentPage;
+        } else {
+            return itemGroupPage.get(group);
+        }
+    }
+
+    private boolean hasGroupForPage(int page) {
+        return ItemGroups.getGroupsToDisplay().stream().anyMatch((itemGroup -> {
+            return this.getPage(itemGroup) == page;
+        }));
+    }
+
+    public boolean switchToPage(int page) {
+        if (!this.hasGroupForPage(page)) {
+            return false;
+        } else if (currentPage == page) {
+            return false;
+        } else {
+            currentPage = page;
+            this.updateSelection();
+            return true;
+        }
+    }
+
+    public boolean switchToNextPage() {
+        return this.switchToPage(this.getCurrentPage() + 1);
+    }
+
+    public boolean switchToPreviousPage() {
+        return this.switchToPage(this.getCurrentPage() - 1);
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public int getPageCount() {
+        return JourneyCreativeGuiComponents.getPageCount();
+    }
+
+    public List<ItemGroup> getItemGroupsOnPage(int page) {
+        return ItemGroups.getGroupsToDisplay().stream().filter((itemGroup) -> {
+            return this.getPage(itemGroup) == page;
+        }).sorted(Comparator.comparing(ItemGroup::getRow).thenComparingInt(ItemGroup::getColumn)).sorted((a, b) -> {
+            return Boolean.compare(a.isSpecial(), b.isSpecial());
+        }).toList();
+    }
+
+    public boolean hasAdditionalPages() {
+        return ItemGroups.getGroupsToDisplay().size() > (this.operatorTabEnabled ? 14 : 13);
+    }
+
+    public ItemGroup getSelectedItemGroup() {
+        return selectedTab;
+    }
+
+    public boolean setSelectedItemGroup(ItemGroup itemGroup) {
+        Objects.requireNonNull(itemGroup, "itemGroup");
+        if (selectedTab == itemGroup) {
+            return false;
+        } else if (currentPage != this.getPage(itemGroup) && !this.switchToPage(this.getPage(itemGroup))) {
+            return false;
+        } else {
+            this.setSelectedTab(itemGroup);
+            return true;
+        }
+    }
+
+    private void paginateGroups() {
+        List<RegistryKey<ItemGroup>> vanillaGroups = List.of(ItemGroups.BUILDING_BLOCKS, ItemGroups.COLORED_BLOCKS, ItemGroups.NATURAL,
+                ItemGroups.FUNCTIONAL, ItemGroups.REDSTONE, ItemGroups.HOTBAR, ItemGroups.SEARCH, ItemGroups.TOOLS, ItemGroups.COMBAT,
+                ItemGroups.FOOD_AND_DRINK, ItemGroups.INGREDIENTS, ItemGroups.SPAWN_EGGS, ItemGroups.OPERATOR, ItemGroups.INVENTORY);
+        int count = 0;
+        Comparator<RegistryEntry.Reference<ItemGroup>> entryComparator = (e1, e2) -> {
+            int displayCompare = Boolean.compare(((ItemGroup) e1.value()).shouldDisplay(), ((ItemGroup) e2.value()).shouldDisplay());
+            return displayCompare != 0 ? -displayCompare : compareNamespaceFirst(e1.registryKey().getValue(), e2.registryKey().getValue());
+        };
+        List<RegistryEntry.Reference<ItemGroup>> sortedItemGroups = Registries.ITEM_GROUP.streamEntries().sorted(entryComparator).toList();
+        Iterator<RegistryEntry.Reference<ItemGroup>> groupIterator = sortedItemGroups.iterator();
+
+        while (groupIterator.hasNext()) {
+            RegistryEntry.Reference<ItemGroup> reference = (RegistryEntry.Reference<ItemGroup>) groupIterator.next();
+            ItemGroup itemGroup = (ItemGroup) reference.value();
+            if (vanillaGroups.contains(reference.registryKey())) {
+                itemGroupPage.put(itemGroup, 0);
+            } else {
+                itemGroupPage.put(itemGroup, count / 10 + 1);
+                ++count;
+            }
+        }
+    }
+
+    private static int compareNamespaceFirst(Identifier a, Identifier b) {
+        int c = a.getNamespace().compareTo(b.getNamespace());
+        return c != 0 ? c : a.getPath().compareTo(b.getPath());
     }
 
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
@@ -536,6 +659,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     }
 
     private void setSelectedTab(ItemGroup group) {
+        if (!this.isGroupVisible(group)) {
+            return;
+        }
         ItemGroup itemGroup = selectedTab;
         selectedTab = group;
         this.cursorDragSlots.clear();
@@ -638,6 +764,14 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
         this.scrollPosition = 0.0F;
         ((JourneyScreenHandler) this.handler).scrollItems(0.0F);
+    }
+
+    private void updateSelection() { //FROM Fabric API CreativeInventoryScreenMixin.class
+        if (!this.isGroupVisible(selectedTab)) {
+            ItemGroups.getGroups().stream().filter(this::isGroupVisible).min((a, b) -> {
+                return Boolean.compare(a.isSpecial(), b.isSpecial());
+            }).ifPresent(this::setSelectedTab);
+        }
     }
 
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
@@ -796,12 +930,18 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     }
 
     protected boolean isClickInTab(ItemGroup group, double mouseX, double mouseY) {
+        if (!this.isGroupVisible(group)) {
+            return false;
+        }
         int i = this.getTabX(group);
         int j = this.getTabY(group);
         return mouseX >= (double) i && mouseX <= (double) (i + 26) && mouseY >= (double) j && mouseY <= (double) (j + 32);
     }
 
     protected boolean renderTabTooltipIfHovered(DrawContext context, ItemGroup group, int mouseX, int mouseY) {
+        if (!this.isGroupVisible(group)) {
+            return false;
+        }
         int i = this.getTabX(group);
         int j = this.getTabY(group);
         if (this.isPointWithinBounds(i + 3, j + 3, 21, 27, (double) mouseX, (double) mouseY)) {
@@ -813,6 +953,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     }
 
     protected void renderTabIcon(DrawContext context, ItemGroup group) {
+        if (!this.isGroupVisible(group)) {
+            return;
+        }
         boolean bl = group == selectedTab;
         boolean bl2 = group.getRow() == ItemGroup.Row.TOP;
         int i = group.getColumn();

@@ -13,5 +13,6 @@
   "block.journeycreative.ender_archive": "Ender Archive",
   "item.journeycreative.ender_archive": "Ender Archive",
   "item.journeycreative.ender_archive.tooptip": "Use a %s to get a %s",
-  "container.journeycreative.ender_archive": "Research New Items"
+  "container.journeycreative.ender_archive": "Research New Items",
+  "itemGroup.journeycreative": "Journey"
 }

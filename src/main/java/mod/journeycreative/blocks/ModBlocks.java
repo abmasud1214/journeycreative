@@ -3,6 +3,7 @@ package mod.journeycreative.blocks;
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.items.EnderArchiveBlockItem;
 import mod.journeycreative.items.ModComponents;
+import mod.journeycreative.items.ModItems;
 import mod.journeycreative.items.ResearchVesselBlockItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -100,9 +101,9 @@ public class ModBlocks {
     }
 
     public static void initialize() {
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
+        ItemGroupEvents.modifyEntriesEvent(ModItems.JOURNEY_CREATIVE_ITEM_GROUP_KEY)
                 .register(itemGroup -> itemGroup.add(ModBlocks.RESEARCH_VESSEL_BLOCK.asItem()));
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
+        ItemGroupEvents.modifyEntriesEvent(ModItems.JOURNEY_CREATIVE_ITEM_GROUP_KEY)
                 .register(itemGroup -> itemGroup.add(ModBlocks.ENDER_ARCHIVE_BLOCK.asItem()));
     }
 }
