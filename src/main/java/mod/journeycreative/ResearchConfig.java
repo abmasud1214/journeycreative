@@ -13,6 +13,7 @@ public class ResearchConfig {
     public static final Map<Identifier, Integer> RESEARCH_AMOUNT_REQUIREMENTS = new HashMap<>();
     public static final Map<Identifier, List<Identifier>> RESEARCH_PREREQUISITES = new HashMap<>();
     public static final Set<Identifier> RESEARCH_PROHIBITED = new HashSet<>();
+    public static final Set<Identifier> RESEARCH_BLOCKED = new HashSet<>();
 
     public static void loadResearchAmounts(Reader reader) {
         JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
@@ -46,6 +47,14 @@ public class ResearchConfig {
         JsonArray prohibited = root.getAsJsonArray("unresearchable");
         for (JsonElement element : prohibited) {
             RESEARCH_PROHIBITED.add(Identifier.of(element.getAsString()));
+        }
+    }
+
+    public static void loadResearchBlocked(Reader reader) {
+        JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
+        JsonArray blocked = root.getAsJsonArray("blocked");
+        for (JsonElement element : blocked) {
+            RESEARCH_BLOCKED.add(Identifier.of(element.getAsString()));
         }
     }
 }
