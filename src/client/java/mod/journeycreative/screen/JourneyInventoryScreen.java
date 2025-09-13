@@ -15,8 +15,11 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 
+import net.minecraft.client.gui.ScreenPos;
+import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ingame.*;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.HotbarStorage;
@@ -57,6 +60,10 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen.JourneyScreenHandler> implements FabricCreativeInventoryScreen {
+    public static final ButtonTextures JOURNEY_BUTTON_TEXTURES = new ButtonTextures(
+            Identifier.of(Journeycreative.MOD_ID, "journey_button"),
+            Identifier.of(Journeycreative.MOD_ID, "journey_button_highlighted"));
+
     private static final Identifier SCROLLER_TEXTURE = Identifier.ofVanilla("container/creative_inventory/scroller");
     private static final Identifier SCROLLER_DISABLED_TEXTURE = Identifier.ofVanilla("container/creative_inventory/scroller_disabled");
     private static final Identifier[] TAB_TOP_UNSELECTED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_1"), Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_2"), Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_3"), Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_4"), Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_5"), Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_6"), Identifier.ofVanilla("container/creative_inventory/tab_top_unselected_7")};
@@ -353,9 +360,12 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             this.setSelectedTab(ItemGroups.getDefaultTab());
         }
 
-//        this.addDrawableChild(ButtonWidget.builder(Text.literal("Back to Survival"), button -> {
-//            MinecraftClient.getInstance().setScreen(new InventoryScreen(player));
-//        }).dimensions(this.width / 2 - 40, this.height - 30, 80, 20).build());
+        ScreenPos survivalButtonPos = new ScreenPos(this.x + 149, this.y + this.backgroundHeight + 5);
+        this.addDrawableChild(
+                new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 19, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
+                    MinecraftClient.getInstance().setScreen(new InventoryScreen(MinecraftClient.getInstance().player));
+                })
+        );
     }
 
     public void resize(MinecraftClient client, int width, int height) {
