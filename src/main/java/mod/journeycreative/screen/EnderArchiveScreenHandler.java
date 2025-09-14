@@ -1,7 +1,6 @@
 package mod.journeycreative.screen;
 
 import mod.journeycreative.ResearchConfig;
-import mod.journeycreative.blocks.EnderArchiveBlockEntity;
 import mod.journeycreative.blocks.ModBlocks;
 import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.items.ModItems;
@@ -12,27 +11,27 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.RecipeManager;
-import net.minecraft.recipe.RecipePropertySet;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ForgingScreenHandler;
 import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandlerContext;
-import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.ForgingSlotsManager;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 public class EnderArchiveScreenHandler extends ForgingScreenHandler {
     private final World world;
     private final Property invalidRecipe;
+    public enum researchInvalidReason {
+        VALID,
+        INSUFFICIENT,
+        BLOCKED,
+        PROHIBITED
+    }
+    private final Property reason;
 
 
     public EnderArchiveScreenHandler(int syncId, PlayerInventory inventory) {
@@ -46,8 +45,10 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
     private EnderArchiveScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context, World world) {
         super(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, syncId, playerInventory, context, createForgingSlotsManager(world.getRecipeManager()));
         this.invalidRecipe = Property.create();
+        this.reason = Property.create();
         this.world = world;
         this.addProperty(this.invalidRecipe).set(0);
+        this.addProperty(this.reason).set(0);
     }
 
     private static ForgingSlotsManager createForgingSlotsManager(RecipeManager recipeManager) {
@@ -95,13 +96,23 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
 
                 boolean full = fullContainer(target, container);
                 boolean canCreateCertificate = !ResearchConfig.RESEARCH_BLOCKED.contains(Registries.ITEM.getId(target.getItem()));
+                boolean canResearchItem = !ResearchConfig.RESEARCH_PROHIBITED.contains(Registries.ITEM.getId(target.getItem()));
 
-                if (!target.isEmpty() && full && canCreateCertificate) {
+                researchInvalidReason r = researchInvalidReason.VALID;
+                if (!canCreateCertificate) {
+                    r = researchInvalidReason.BLOCKED;
+                } else if (!canResearchItem) {
+                    r = researchInvalidReason.PROHIBITED;
+                } else if (!full) {
+                    r = researchInvalidReason.INSUFFICIENT;
+                } else if (!target.isEmpty()) {
                     ItemStack output = new ItemStack(ModItems.RESEARCH_CERTIFICATE, 1);
                     output.set(ModComponents.RESEARCH_ITEM_COMPONENT, target);
                     this.output.setStack(0, output);
+                    this.reason.set(0);
                     return;
                 }
+                this.reason.set(r.ordinal());
             }
         }
         this.output.setStack(0, ItemStack.EMPTY);
@@ -137,6 +148,10 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
             full -= stack.getCount();
         }
         return full <= 0;
+    }
+
+    public researchInvalidReason getReason() {
+        return researchInvalidReason.values()[this.reason.get()];
     }
 
 }
