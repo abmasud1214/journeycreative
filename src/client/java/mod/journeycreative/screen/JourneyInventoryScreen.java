@@ -131,6 +131,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     if (itemGroup.getType() == ItemGroup.Type.CATEGORY && collection.isEmpty()) {
                         this.setSelectedTab(ItemGroups.getDefaultTab());
                     } else {
+                        collection = filterUnlockedItems(collection);
                         this.refreshSelectedTab(collection);
                     }
                 }
