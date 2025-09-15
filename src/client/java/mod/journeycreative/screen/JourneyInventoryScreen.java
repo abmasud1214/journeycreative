@@ -894,6 +894,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
         while(var5.hasNext()) {
             ItemGroup itemGroup = (ItemGroup) var5.next();
+            if (itemGroup.getType() == ItemGroup.Type.HOTBAR) continue;
             if (itemGroup != selectedTab) {
                 this.renderTabIcon(context, itemGroup);
             }
