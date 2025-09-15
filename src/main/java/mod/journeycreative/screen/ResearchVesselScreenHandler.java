@@ -9,19 +9,26 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.ShulkerBoxSlot;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ClickType;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
+import net.minecraft.world.World;
 
 public class ResearchVesselScreenHandler extends ScreenHandler {
-    private final ResearchVesselInventory inventory;
+    public final ResearchVesselInventory inventory;
     private DefaultedList<ResearchVesselSlot> vesselSlots = DefaultedList.of();
+    private final Property quantity;
+    private final Property capacity;
+    private final Property reason;
+    private final World world;
 
     public ResearchVesselScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, ResearchVesselInventory.ofSize(27));
@@ -31,6 +38,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         super(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER, syncId);
         checkSize(inventory, 27);
         this.inventory = inventory;
+        world = playerInventory.player.getWorld();
 
         inventory.onOpen(playerInventory.player);
 
@@ -46,6 +54,15 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         }
 
         this.addPlayerSlots(playerInventory, 8, 84);
+
+        this.quantity = Property.create();
+        this.capacity = Property.create();
+        this.reason = Property.create();
+        ItemStack target = this.inventory.getTarget();
+        this.addProperty(this.quantity).set(inventory.getQuantity());
+        this.addProperty(this.capacity).set(inventory.getCapacity());
+        this.addProperty(this.reason).set(0);
+        setReason(target);
     }
 
     @Override
@@ -110,6 +127,12 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             ItemStack target = inventory.getTarget();
             this.inventory.refactorInventory(target);
         }
+
+        if (this.world instanceof ServerWorld) {
+            setReason(this.inventory.getTarget());
+            this.quantity.set(this.inventory.getQuantity());
+            this.capacity.set(this.inventory.getCapacity());
+        }
     }
 
     private ItemStack isInsertAction(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
@@ -153,6 +176,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         int inserted = 0;
         if (inventory.isEmpty()) {
             inserted = inventory.insertIntoInventory(inputStack);
+            this.inventory.getTarget();
         } else {
             ItemStack target = this.inventory.getTarget();
             if (ItemStack.areItemsAndComponentsEqual(target, inputStack)) {
@@ -162,9 +186,31 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         stack.decrement(inserted);
     }
 
+    private void setReason(ItemStack target) {
+        EnderArchiveScreenHandler.researchInvalidReason r = EnderArchiveScreenHandler.researchInvalidReason.VALID;
+        if (ResearchConfig.RESEARCH_BLOCKED.contains(Registries.ITEM.getId(target.getItem()))) {
+            r = EnderArchiveScreenHandler.researchInvalidReason.BLOCKED;
+        } else if (ResearchConfig.RESEARCH_PROHIBITED.contains(Registries.ITEM.getId(target.getItem()))) {
+            r = EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED;
+        }
+        this.reason.set(r.ordinal());
+    }
+
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
         this.inventory.onClose(player);
+    }
+
+    public int getInventoryQuantity() {
+        return this.quantity.get();
+    }
+
+    public int getInventoryCapacity() {
+        return this.capacity.get();
+    }
+
+    public EnderArchiveScreenHandler.researchInvalidReason getReason() {
+        return EnderArchiveScreenHandler.researchInvalidReason.values()[this.reason.get()];
     }
 }

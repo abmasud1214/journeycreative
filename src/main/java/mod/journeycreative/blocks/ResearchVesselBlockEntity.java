@@ -146,9 +146,12 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
         return target;
     }
 
+    public int getQuantity() {
+        return this.count(target.getItem());
+    }
+
     @Override
     public int getCapacity() {
-        ItemStack t = getTarget();
         return capacity;
     }
 

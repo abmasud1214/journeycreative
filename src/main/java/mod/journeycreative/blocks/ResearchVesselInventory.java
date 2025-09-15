@@ -80,6 +80,10 @@ public interface ResearchVesselInventory extends Inventory {
         return ItemStack.EMPTY;
     }
 
+    default int getQuantity() {
+        return 0;
+    }
+
     default int getCapacity() {
         return 0;
     }
