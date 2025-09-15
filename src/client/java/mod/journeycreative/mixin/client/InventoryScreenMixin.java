@@ -19,16 +19,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(InventoryScreen.class)
 public class InventoryScreenMixin {
+    private TexturedButtonWidget journeyButton;
+
     @Inject(method = "init", at = @At("TAIL"))
     private void addJourneyTab(CallbackInfo ci) {
         InventoryScreen screen = (InventoryScreen)(Object)this;
         ScreenPos survivalButtonPos = new ScreenPos(screen.x + 129, screen.height / 2 - 22);
 
-        screen.addDrawableChild(
-                new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 19, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
-                    MinecraftClient.getInstance().setScreen(new JourneyInventoryScreen(MinecraftClient.getInstance().player, FeatureSet.empty(), false));
-                })
-        );
+        journeyButton = new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 19, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
+            MinecraftClient.getInstance().setScreen(new JourneyInventoryScreen(MinecraftClient.getInstance().player, FeatureSet.empty(), false));
+        });
+
+        screen.addDrawableChild(journeyButton);
+    }
+
+    @Inject(method = "render", at = @At("TAIL"))
+    private void updateJourneyButtonPosition(CallbackInfo ci) {
+        if (journeyButton != null) {
+            InventoryScreen screen = (InventoryScreen)(Object)this;
+            journeyButton.setPosition(screen.x + 129, screen.height / 2 - 22);
+        }
     }
 
 }
