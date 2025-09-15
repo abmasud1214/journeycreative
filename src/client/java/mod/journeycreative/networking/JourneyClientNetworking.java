@@ -45,13 +45,4 @@ public class JourneyClientNetworking {
             });
         });
     }
-
-//    public static void unlockItem(Item item) {
-//        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Registries.ITEM.getId(item));
-//        ClientPlayNetworking.send(new JourneyNetworking.UnlockItemPayload(itemKey));
-//    }
-//
-//    public static void unlockItem(RegistryKey<Item> itemKey) {
-//        ClientPlayNetworking.send(new JourneyNetworking.UnlockItemPayload(itemKey));
-//    }
 }

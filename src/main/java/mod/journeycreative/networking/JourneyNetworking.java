@@ -119,8 +119,8 @@ public class JourneyNetworking {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
            dispatcher.register(CommandManager.literal("unlockitem")
                    .requires(src -> src.hasPermissionLevel(2))
-                   .then(CommandManager.argument("item", RegistryKeyArgumentType.registryKey(RegistryKeys.ITEM))
-                           .executes(ctx -> unlockItemCommand(ctx))));
+                   .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(registryAccess))
+                           .executes(JourneyNetworking::unlockItemCommand)));
         });
     }
 
@@ -134,9 +134,9 @@ public class JourneyNetworking {
         PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
 
         if (playerState.unlockItem(unlockStack)) {
-            player.sendMessage(Text.literal("Unlocked item: " + unlockStack.getItem().getName()), false);
+            player.sendMessage(Text.translatable("item.journeycreative.research_certificate.unlocked", unlockStack.getItem().getName()), true);
         } else {
-            player.sendMessage(Text.literal("Item was already unlocked: " + unlockStack.getItem().getName()), false);
+            player.sendMessage(Text.translatable("item.journeycreative.research_certificate.already_unlocked", unlockStack.getItem().getName()), true);
         }
 
         source.getServer().execute(() -> {
