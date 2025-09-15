@@ -21,13 +21,6 @@ public class ModItems {
                     .useCooldown(.5f)
                     .component(ModComponents.RESEARCH_ITEM_COMPONENT, new ItemStack(Items.BARRIER)));
 
-    public static final RegistryKey<ItemGroup> JOURNEY_CREATIVE_ITEM_GROUP_KEY =
-            RegistryKey.of(Registries.ITEM_GROUP.getKey(), Identifier.of(Journeycreative.MOD_ID, "item_group"));
-    public static final ItemGroup JOURNEY_CREATIVE_ITEM_GROUP = FabricItemGroup.builder()
-            .icon(() -> new ItemStack(ModItems.RESEARCH_CERTIFICATE))
-            .displayName(Text.translatable("itemGroup.journeycreative"))
-            .build();
-
     public static Item register(String name, Function<Item.Settings, Item> itemFactory, Item.Settings settings) {
         RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Journeycreative.MOD_ID, name));
 
@@ -39,9 +32,5 @@ public class ModItems {
     }
 
     public static void initialize() {
-        Registry.register(Registries.ITEM_GROUP, JOURNEY_CREATIVE_ITEM_GROUP_KEY, JOURNEY_CREATIVE_ITEM_GROUP);
-
-        ItemGroupEvents.modifyEntriesEvent(JOURNEY_CREATIVE_ITEM_GROUP_KEY)
-                .register((itemGroup) -> itemGroup.add(ModItems.RESEARCH_CERTIFICATE));
     }
 }

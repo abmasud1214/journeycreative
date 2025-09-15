@@ -101,9 +101,9 @@ public class ModBlocks {
     }
 
     public static void initialize() {
-        ItemGroupEvents.modifyEntriesEvent(ModItems.JOURNEY_CREATIVE_ITEM_GROUP_KEY)
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
                 .register(itemGroup -> itemGroup.add(ModBlocks.RESEARCH_VESSEL_BLOCK.asItem()));
-        ItemGroupEvents.modifyEntriesEvent(ModItems.JOURNEY_CREATIVE_ITEM_GROUP_KEY)
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL)
                 .register(itemGroup -> itemGroup.add(ModBlocks.ENDER_ARCHIVE_BLOCK.asItem()));
     }
 }
