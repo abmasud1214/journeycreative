@@ -8,6 +8,7 @@ import mod.journeycreative.items.EnderArchiveBlockItem;
 import mod.journeycreative.items.ModItems;
 import mod.journeycreative.items.ResearchCertificateItem;
 import mod.journeycreative.items.ResearchVesselBlockItem;
+import mod.journeycreative.keybinds.ModKeyBindings;
 import mod.journeycreative.networking.JourneyClientNetworking;
 import mod.journeycreative.screen.ModScreensClient;
 import net.fabricmc.api.ClientModInitializer;
@@ -38,6 +39,7 @@ public class JourneycreativeClient implements ClientModInitializer {
 
 		ModScreensClient.initialize();
 		ModModelLayers.initialize();
+		ModKeyBindings.register();
 
 		BlockEntityRendererFactories.register(ModBlocks.RESEARCH_VESSEL_BLOCK_ENTITY, ResearchVesselEntityRenderer::new);
 		BlockEntityRendererFactories.register(ModBlocks.ENDER_ARCHIVE_BLOCK_ENTITY, EnderArchiveEntityRenderer::new);

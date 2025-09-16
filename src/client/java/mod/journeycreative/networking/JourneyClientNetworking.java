@@ -1,5 +1,6 @@
 package mod.journeycreative.networking;
 
+import mod.journeycreative.keybinds.KeyInputHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -28,6 +29,7 @@ public class JourneyClientNetworking {
     public static void RegisterClientPackets(){
         ReceiveUnlockedItems();
         ReceiveResearchItemRule();
+        KeyInputHandler.register();
     }
 
     private static void ReceiveUnlockedItems(){

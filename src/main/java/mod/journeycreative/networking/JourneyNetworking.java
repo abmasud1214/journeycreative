@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.logging.LogUtils;
+import io.netty.buffer.ByteBuf;
 import mod.journeycreative.Journeycreative;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -12,12 +13,15 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.ItemStackArgumentType;
 import net.minecraft.command.argument.RegistryKeyArgumentType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -28,17 +32,18 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Cooldown;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Unit;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class JourneyNetworking {
     public static final Identifier GIVE_ITEM = Identifier.of(Journeycreative.MOD_ID, "give_item");
     public static final Identifier UNLOCK_ITEM = Identifier.of(Journeycreative.MOD_ID, "unlock_item");
     public static final Identifier SYNC_UNLOCKED_ITEMS = Identifier.of(Journeycreative.MOD_ID, "sync_unlock_item");
     public static final Identifier SYNC_RESEARCH_ITEMS_UNLOCKED_RULE = Identifier.of(Journeycreative.MOD_ID, "sync_research_rule");
+    public static final Identifier ROTATE_ITEMS = Identifier.of(Journeycreative.MOD_ID, "rotate_items");
+
     public static final Identifier INITIAL_SYNC = Identifier.of(Journeycreative.MOD_ID, "initial_sync");
     static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<UUID, Cooldown> playerCreativeItemDropCooldowns = new HashMap<>();
@@ -55,6 +60,36 @@ public class JourneyNetworking {
         unlockItemPacket();
         initialSync();
         unlockItemCommandEvent();
+        rotateItemsPacket();
+    }
+
+    public static void rotateItemsPacket() {
+        PayloadTypeRegistry.playC2S().register(RotateItemsPayload.ID, RotateItemsPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(RotateItemsPayload.ID, (payload, context) -> {
+            PlayerEntity player = context.player();
+            PlayerInventory inv = player.getInventory();
+
+            List<ItemStack> hotbar = new ArrayList<>();
+            List<ItemStack> row1 = new ArrayList<>();
+            List<ItemStack> row2 = new ArrayList<>();
+            List<ItemStack> row3 = new ArrayList<>();
+
+            for (int i = 0; i < 9; i++) hotbar.add(inv.getStack(i));
+            for (int i = 9; i < 18; i++) row1.add(inv.getStack(i));
+            for (int i = 18; i < 27; i++) row2.add(inv.getStack(i));
+            for (int i = 27; i < 36; i++) row3.add(inv.getStack(i));
+
+            // Rotate
+            for (int i = 0; i < 9; i++) {
+                inv.setStack(i, row3.get(i));       // hotbar <- row3
+                inv.setStack(i + 9, hotbar.get(i)); // row1 <- hotbar
+                inv.setStack(i + 18, row1.get(i));  // row2 <- row1
+                inv.setStack(i + 27, row2.get(i));  // row3 <- row2
+            }
+
+            player.currentScreenHandler.sendContentUpdates();
+        });
     }
 
     private static void giveItemPacket(){
@@ -206,6 +241,18 @@ public class JourneyNetworking {
                 new CustomPayload.Id(SYNC_RESEARCH_ITEMS_UNLOCKED_RULE);
         public static final PacketCodec<RegistryByteBuf, SyncResearchItemsUnlockRulePayload> CODEC =
                 PacketCodec.tuple(PacketCodecs.BOOLEAN, SyncResearchItemsUnlockRulePayload::value, SyncResearchItemsUnlockRulePayload::new);
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    public record RotateItemsPayload() implements CustomPayload {
+        public static final CustomPayload.Id<RotateItemsPayload> ID =
+                new CustomPayload.Id(ROTATE_ITEMS);
+        public static final PacketCodec<RegistryByteBuf, RotateItemsPayload> CODEC =
+                PacketCodec.unit(new RotateItemsPayload());
 
         @Override
         public Id<? extends CustomPayload> getId() {
