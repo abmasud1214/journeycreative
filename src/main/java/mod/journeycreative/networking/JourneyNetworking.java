@@ -52,7 +52,9 @@ public class JourneyNetworking {
             new DynamicCommandExceptionType(id -> Text.literal("Unknown item: " + id));
 
     public static void registerClientPackets() {
-
+        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncUnlockedItemsPayload.ID, JourneyNetworking.SyncUnlockedItemsPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID,
+                JourneyNetworking.SyncResearchItemsUnlockRulePayload.CODEC);
     }
 
     public static void registerServerPackets() {

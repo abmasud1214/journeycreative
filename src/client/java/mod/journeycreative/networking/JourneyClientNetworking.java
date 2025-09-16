@@ -33,8 +33,6 @@ public class JourneyClientNetworking {
     }
 
     private static void ReceiveUnlockedItems(){
-        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncUnlockedItemsPayload.ID, JourneyNetworking.SyncUnlockedItemsPayload.CODEC);
-
         ClientPlayNetworking.registerGlobalReceiver(JourneyNetworking.SyncUnlockedItemsPayload.ID, (payload, context) -> {
             PlayerUnlocksData playerUnlocksData = payload.playerUnlocksData();
             context.client().execute(() -> {
@@ -44,9 +42,6 @@ public class JourneyClientNetworking {
     }
 
     private static void ReceiveResearchItemRule() {
-        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID,
-                JourneyNetworking.SyncResearchItemsUnlockRulePayload.CODEC);
-
         ClientPlayNetworking.registerGlobalReceiver(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID, (payload, context) -> {
             boolean value = payload.value();
             context.client().execute(() -> {
