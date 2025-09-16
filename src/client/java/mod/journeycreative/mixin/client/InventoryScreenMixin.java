@@ -26,7 +26,7 @@ public class InventoryScreenMixin {
         InventoryScreen screen = (InventoryScreen)(Object)this;
         ScreenPos survivalButtonPos = new ScreenPos(screen.x + 129, screen.height / 2 - 22);
 
-        journeyButton = new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 19, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
+        journeyButton = new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 20, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
             MinecraftClient.getInstance().setScreen(new JourneyInventoryScreen(MinecraftClient.getInstance().player, FeatureSet.empty(), false));
         });
 

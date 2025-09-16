@@ -361,7 +361,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
         ScreenPos survivalButtonPos = new ScreenPos(this.x + 149, this.y + this.backgroundHeight + 5);
         this.addDrawableChild(
-                new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 19, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
+                new TexturedButtonWidget(survivalButtonPos.x(), survivalButtonPos.y(), 20, 18, JourneyInventoryScreen.JOURNEY_BUTTON_TEXTURES, (button) -> {
                     MinecraftClient.getInstance().setScreen(new InventoryScreen(MinecraftClient.getInstance().player));
                 })
         );
