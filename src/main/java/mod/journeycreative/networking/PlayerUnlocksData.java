@@ -3,9 +3,12 @@ package mod.journeycreative.networking;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
+import mod.journeycreative.Journeycreative;
 import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,7 +33,7 @@ public class PlayerUnlocksData {
     }
 
     public boolean unlockItem(ItemStack item) {
-        if (isUnlocked(item)) {
+        if (isUnlocked(item, false)) { // We don't check the gamerule so that the item can be unlocked regardless
             return false;
         } else {
             ItemStack normalized = normalizeForUnlocks(item);
@@ -39,13 +42,20 @@ public class PlayerUnlocksData {
         }
     }
 
-    public boolean isUnlocked(ItemStack item) {
+    public boolean isUnlocked(ItemStack item, boolean researchItems) {
         ItemStack normalized = normalizeForUnlocks(item);
         AtomicBoolean equal = new AtomicBoolean(false);
 
         unlockedItemKeys.stream().iterator().forEachRemaining(stack -> {
             if (ItemStack.areItemsAndComponentsEqual(stack, normalized)) equal.set(true);
         });
+
+        if (researchItems) {
+            ItemStack researchVessel = normalizeForUnlocks(new ItemStack(Registries.ITEM.get(Identifier.of(Journeycreative.MOD_ID, "research_vessel")), 1));
+            ItemStack enderArchive = normalizeForUnlocks(new ItemStack(Registries.ITEM.get(Identifier.of(Journeycreative.MOD_ID, "ender_archive")), 1));
+            if (ItemStack.areItemsAndComponentsEqual(researchVessel, normalized)) equal.set(true);
+            if (ItemStack.areItemsAndComponentsEqual(enderArchive, normalized)) equal.set(true);
+        }
 
         return equal.get();
     }

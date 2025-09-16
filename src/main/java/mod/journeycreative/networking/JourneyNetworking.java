@@ -38,6 +38,7 @@ public class JourneyNetworking {
     public static final Identifier GIVE_ITEM = Identifier.of(Journeycreative.MOD_ID, "give_item");
     public static final Identifier UNLOCK_ITEM = Identifier.of(Journeycreative.MOD_ID, "unlock_item");
     public static final Identifier SYNC_UNLOCKED_ITEMS = Identifier.of(Journeycreative.MOD_ID, "sync_unlock_item");
+    public static final Identifier SYNC_RESEARCH_ITEMS_UNLOCKED_RULE = Identifier.of(Journeycreative.MOD_ID, "sync_research_rule");
     public static final Identifier INITIAL_SYNC = Identifier.of(Journeycreative.MOD_ID, "initial_sync");
     static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<UUID, Cooldown> playerCreativeItemDropCooldowns = new HashMap<>();
@@ -151,7 +152,15 @@ public class JourneyNetworking {
             PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(handler.getPlayer());
             server.execute(() -> {
                 ServerPlayNetworking.send(handler.getPlayer(), new SyncUnlockedItemsPayload(playerState));
+                syncResearchItemsUnlocked(handler.getPlayer());
             });
+        });
+    }
+
+    public static void syncResearchItemsUnlocked(ServerPlayerEntity player) {
+        boolean value = player.getWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
+        player.getWorld().getServer().execute(() -> {
+            ServerPlayNetworking.send(player, new SyncResearchItemsUnlockRulePayload(value));
         });
     }
 
@@ -185,6 +194,18 @@ public class JourneyNetworking {
                 new CustomPayload.Id(SYNC_UNLOCKED_ITEMS);
         public static final PacketCodec<RegistryByteBuf, SyncUnlockedItemsPayload> CODEC =
                 PacketCodec.tuple(PacketCodecs.registryCodec(PlayerUnlocksData.PLAYER_UNLOCKS_CODEC), SyncUnlockedItemsPayload::playerUnlocksData, SyncUnlockedItemsPayload::new);
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    public record SyncResearchItemsUnlockRulePayload(boolean value) implements CustomPayload {
+        public static final CustomPayload.Id<SyncResearchItemsUnlockRulePayload> ID =
+                new CustomPayload.Id(SYNC_RESEARCH_ITEMS_UNLOCKED_RULE);
+        public static final PacketCodec<RegistryByteBuf, SyncResearchItemsUnlockRulePayload> CODEC =
+                PacketCodec.tuple(PacketCodecs.BOOLEAN, SyncResearchItemsUnlockRulePayload::value, SyncResearchItemsUnlockRulePayload::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {

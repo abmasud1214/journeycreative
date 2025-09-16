@@ -1,5 +1,6 @@
 package mod.journeycreative.items;
 
+import mod.journeycreative.Journeycreative;
 import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.networking.JourneyNetworking;
 import mod.journeycreative.networking.PlayerUnlocksData;
@@ -16,6 +17,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
@@ -82,7 +84,7 @@ public class ResearchCertificateItem extends Item {
     public ItemStack finishUsing(ItemStack stack, World world, LivingEntity user) {
         boolean exists = stack.contains(ModComponents.RESEARCH_ITEM_COMPONENT);
 
-        if (!world.isClient && user instanceof PlayerEntity player && exists) {
+        if (world instanceof ServerWorld serverWorld && user instanceof PlayerEntity player && exists) {
             PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
             ItemStack research_target = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
 //            RegistryKey<Item> research_target = stack.getOrDefault(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "diamond")));
@@ -100,7 +102,7 @@ public class ResearchCertificateItem extends Item {
             if (!prerequisites.isEmpty()) {
                 for (Identifier id : prerequisites) {
                     ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
-                    if (!playerState.isUnlocked(prereqStack)) {
+                    if (!playerState.isUnlocked(prereqStack, serverWorld.getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
                         prereqs.add(getItemName(prereqStack).getString());
                     }
                 }

@@ -1,15 +1,9 @@
 package mod.journeycreative.networking;
 
-import mod.journeycreative.Journeycreative;
-import mod.journeycreative.PlayerClientUnlocksData;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 
 public class JourneyClientNetworking {
     public static void sendGiveItem(int slot, ItemStack stack) {
@@ -33,6 +27,7 @@ public class JourneyClientNetworking {
 
     public static void RegisterClientPackets(){
         ReceiveUnlockedItems();
+        ReceiveResearchItemRule();
     }
 
     private static void ReceiveUnlockedItems(){
@@ -42,6 +37,18 @@ public class JourneyClientNetworking {
             PlayerUnlocksData playerUnlocksData = payload.playerUnlocksData();
             context.client().execute(() -> {
                 PlayerClientUnlocksData.playerUnlocksData = playerUnlocksData;
+            });
+        });
+    }
+
+    private static void ReceiveResearchItemRule() {
+        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID,
+                JourneyNetworking.SyncResearchItemsUnlockRulePayload.CODEC);
+
+        ClientPlayNetworking.registerGlobalReceiver(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID, (payload, context) -> {
+            boolean value = payload.value();
+            context.client().execute(() -> {
+                ClientGameRule.setResearchItemsUnlocked(value);
             });
         });
     }

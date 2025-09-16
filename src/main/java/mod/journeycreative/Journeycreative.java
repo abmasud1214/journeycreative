@@ -11,11 +11,15 @@ import mod.journeycreative.networking.JourneyNetworking;
 import mod.journeycreative.screen.ModScreens;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,14 @@ import java.io.Reader;
 
 public class Journeycreative implements ModInitializer {
 	public static final String MOD_ID = "journeycreative";
+	public static final GameRules.Key<GameRules.BooleanRule> RESEARCH_ITEMS_UNLOCKED = GameRuleRegistry.register(
+			"researchItemsUnlocked", GameRules.Category.MISC,
+			GameRuleFactory.createBooleanRule(false, (server, rule) -> {
+				for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+					JourneyNetworking.syncResearchItemsUnlocked(player);
+				}
+			})
+	);
 
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
