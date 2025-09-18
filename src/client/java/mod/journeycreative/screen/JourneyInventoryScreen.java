@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.networking.PlayerClientUnlocksData;
 import mod.journeycreative.networking.JourneyClientNetworking;
+import mod.journeycreative.networking.TrashcanServerStorage;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.itemgroup.v1.FabricCreativeInventoryScreen;
@@ -86,6 +87,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private List<Slot> slots;
     @Nullable
     private Slot deleteItemSlot;
+    private Slot pickupSlot;
     private JourneyInventoryListener listener;
     private boolean ignoreTypedCharacter;
     private boolean lastClickOutsideBounds;
@@ -185,11 +187,11 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
 
         boolean bl = actionType == SlotActionType.QUICK_MOVE;
-        actionType = slotId == -999 && actionType == SlotActionType.PICKUP ? SlotActionType.THROW : actionType;
-        if (actionType != SlotActionType.THROW || this.client.player.canDropItems()) {
+        actionType = slotId == -999 && actionType == SlotActionType.PICKUP ? SlotActionType.THROW : actionType; // If pickup action, then throw
+        if (actionType != SlotActionType.THROW || this.client.player.canDropItems()) { // if not throw, or throw not on cooldown
             this.onMouseClick(slot, actionType);
             ItemStack itemStack;
-            if (slot == null && selectedTab.getType() != ItemGroup.Type.INVENTORY && actionType != SlotActionType.QUICK_CRAFT) {
+            if (slot == null && selectedTab.getType() != ItemGroup.Type.INVENTORY && actionType != SlotActionType.QUICK_CRAFT) { // click outside inventory
                 if (!((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && this.lastClickOutsideBounds) {
                     if (!this.client.player.canDropItems()) {
                         return;
@@ -212,40 +214,74 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     return;
                 }
 
-                if (slot == this.deleteItemSlot && bl && this.deleteItemSlot.hasStack()) {
-                    if(this.handler.insertItem(this.deleteItemSlot.getStack(), 9, 46, false)) {
-                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                if (slot == this.deleteItemSlot && bl && this.deleteItemSlot.hasStack()) { // shift click delete item slot
+                    ItemStack tcStack = this.deleteItemSlot.getStack();
+                    boolean ret = this.handler.insertItem(tcStack, 9, 46, false);
+                    if(ret) {
+//                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                        for (int k = 9; k < 45; ++k) {
+                            Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
+                            JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
+                        }
+                        JourneyClientNetworking.sendTrashcanUpdate(tcStack);
                     }
                 } else {
                     ItemStack itemStack2;
-                    if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
-                        if (slot == this.deleteItemSlot) {
-                            if (((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && this.deleteItemSlot.hasStack()) {
+                    if (selectedTab.getType() == ItemGroup.Type.INVENTORY) { // player inventory visible
+                        if (slot == this.deleteItemSlot) { // click delete item slot
+                            ItemStack cursorStack = this.handler.getCursorStack().copy();
+                            if (cursorStack.isEmpty() && this.deleteItemSlot.hasStack()) {
                                 itemStack2 = this.deleteItemSlot.getStack();
-                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
+//                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
                                 ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2);
+                                JourneyClientNetworking.sendTrashcanUpdate(ItemStack.EMPTY);
+//                                pickupSlot = deleteItemSlot;
                             } else {
-                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
-                                this.deleteItemSlot.setStack(((JourneyScreenHandler) this.handler).getCursorStack());
+//                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
+//                                this.deleteItemSlot.setStack(((JourneyScreenHandler) this.handler).getCursorStack());
+                                JourneyClientNetworking.sendTrashcanUpdate(cursorStack);
+//                                if (pickupSlot != null && pickupSlot != deleteItemSlot) {
+////                                    JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) pickupSlot).slot.id);
+//                                }
                                 ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
                             }
-                        } else if (bl && slot != null && slot.hasStack()) {
+                        } else if (bl && slot != null && slot.hasStack()) { // shift click slot.
                             itemStack2 = slot.getStack();
-                            this.deleteItemSlot.setStack(ItemStack.EMPTY);
-                            this.deleteItemSlot.setStack(itemStack2);
+//                            this.deleteItemSlot.setStack(ItemStack.EMPTY);
+//                            this.deleteItemSlot.setStack(itemStack2);
+                            JourneyClientNetworking.sendTrashcanUpdate(itemStack2);
                             slot.setStack(ItemStack.EMPTY);
+                            JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) slot).slot.id);
                         } else if (actionType == SlotActionType.THROW && slot != null && slot.hasStack()) {
                             itemStack = slot.takeStack(button == 0 ? 1 : slot.getStack().getMaxCount());
                             itemStack2 = slot.getStack();
                             this.client.player.dropItem(itemStack, true);
                             JourneyClientNetworking.dropJourneyStack(itemStack, this.client.player);
-                            JourneyClientNetworking.clickJourneyStack(itemStack2, ((CreativeSlot) slot).slot.id);
+                            JourneyClientNetworking.clickJourneyStack(itemStack2, ((JourneySlot) slot).slot.id);
                         } else if (actionType == SlotActionType.THROW && slotId == -999 && !((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
                             this.client.player.dropItem(((JourneyScreenHandler) this.handler).getCursorStack(), true);
                             JourneyClientNetworking.dropJourneyStack(((JourneyScreenHandler) this.handler).getCursorStack(), this.client.player);
                             ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
                         } else {
-                            this.client.player.playerScreenHandler.onSlotClick(slot == null ? slotId : ((CreativeSlot) slot).slot.id, button, actionType, this.client.player);
+//                            ItemStack previousItemStack = slot == null ? ItemStack.EMPTY : slot.getStack().copy();
+//                            ItemStack previousCursorStack = this.handler.getCursorStack().copy();
+                            this.client.player.playerScreenHandler.onSlotClick(slot == null ? slotId : ((JourneySlot) slot).slot.id, button, actionType, this.client.player);
+//                            ItemStack afterItemStack = slot == null ? ItemStack.EMPTY : slot.getStack();
+//                            if (slot != null && !previousItemStack.isEmpty() && afterItemStack.isEmpty()) {
+//                                pickupSlot = slot;
+//                            }
+//                            if (pickupSlot == deleteItemSlot) {
+//                                if (ScreenHandler.unpackQuickCraftStage(button) == 2) {
+//
+//                                } else if (!previousCursorStack.isEmpty() && this.handler.getCursorStack().isEmpty()) {
+//                                    JourneyClientNetworking.clickJourneyStack(slot.getStack(), ((JourneySlot) slot).slot.id);
+//                                }
+//                            }
+
+                        }
+                        for (int k = 9; k < 45; ++k) {
+                            Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
+                            JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
                         }
                     } else {
                         ItemStack itemStack3;
@@ -743,11 +779,11 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     }
                 }
 
-                Slot slot = new CreativeSlot((Slot) screenHandler.slots.get(i), i, n, j);
+                Slot slot = new JourneySlot((Slot) screenHandler.slots.get(i), i, n, j);
                 ((JourneyScreenHandler) this.handler).slots.add(slot);
             }
 
-            this.deleteItemSlot = new Slot(INVENTORY, 0, 173, 112);
+            this.deleteItemSlot = new Slot(this.handler.trashcanInventory, 0, 173, 112);
             ((JourneyScreenHandler) this.handler).slots.add(this.deleteItemSlot);
         } else if (itemGroup.getType() == ItemGroup.Type.INVENTORY) {
             ((JourneyScreenHandler) this.handler).slots.clear();
@@ -1015,10 +1051,15 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
     }
 
+    public Slot getDeleteItemSlot() {
+        return this.deleteItemSlot;
+    }
+
     @Environment(EnvType.CLIENT)
     public static class JourneyScreenHandler extends ScreenHandler {
         public final DefaultedList<ItemStack> itemList = DefaultedList.of();
         private final ScreenHandler parent;
+        private TrashcanInventory trashcanInventory;
 
         public JourneyScreenHandler(PlayerEntity player) {
             super((ScreenHandlerType) null, 0);
@@ -1033,6 +1074,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
             this.addPlayerHotbarSlots(playerInventory, 9, 112);
             this.scrollItems(0.0F);
+            this.trashcanInventory = TrashcanServerStorage.get(player);
         }
 
         public boolean canUse(PlayerEntity player) {
@@ -1184,13 +1226,26 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             return bl;
         }
 
+        @Override
+        public void onClosed(PlayerEntity player) {
+            super.onClosed(player);
+
+            ItemStack cursorStack = this.getCursorStack();
+
+            if (!cursorStack.isEmpty()) {
+                player.dropItem(cursorStack, true);
+                JourneyClientNetworking.dropJourneyStack(cursorStack, (ClientPlayerEntity) player);
+                this.setCursorStack(ItemStack.EMPTY);
+            }
+        }
+
     }
 
     @Environment(EnvType.CLIENT)
-    private static class CreativeSlot extends Slot {
+    private static class JourneySlot extends Slot {
         final Slot slot;
 
-        public CreativeSlot(Slot slot, int invSlot, int x, int y) {
+        public JourneySlot(Slot slot, int invSlot, int x, int y) {
             super(slot.inventory, invSlot, x, y);
             this.slot = slot;
         }

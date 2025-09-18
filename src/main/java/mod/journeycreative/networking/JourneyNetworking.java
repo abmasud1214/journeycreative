@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.netty.buffer.ByteBuf;
 import mod.journeycreative.Journeycreative;
+import mod.journeycreative.screen.TrashcanInventory;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -26,6 +27,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -40,7 +42,9 @@ import java.util.*;
 public class JourneyNetworking {
     public static final Identifier GIVE_ITEM = Identifier.of(Journeycreative.MOD_ID, "give_item");
     public static final Identifier UNLOCK_ITEM = Identifier.of(Journeycreative.MOD_ID, "unlock_item");
+    public static final Identifier TRASH_CAN = Identifier.of(Journeycreative.MOD_ID, "trash_can");
     public static final Identifier SYNC_UNLOCKED_ITEMS = Identifier.of(Journeycreative.MOD_ID, "sync_unlock_item");
+    public static final Identifier SYNC_TRASH_CAN = Identifier.of(Journeycreative.MOD_ID, "sync_trash_can");
     public static final Identifier SYNC_RESEARCH_ITEMS_UNLOCKED_RULE = Identifier.of(Journeycreative.MOD_ID, "sync_research_rule");
     public static final Identifier ROTATE_ITEMS = Identifier.of(Journeycreative.MOD_ID, "rotate_items");
 
@@ -55,6 +59,8 @@ public class JourneyNetworking {
         PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncUnlockedItemsPayload.ID, JourneyNetworking.SyncUnlockedItemsPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID,
                 JourneyNetworking.SyncResearchItemsUnlockRulePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncTrashCanPayload.ID,
+                JourneyNetworking.SyncTrashCanPayload.CODEC);
     }
 
     public static void registerServerPackets() {
@@ -63,6 +69,7 @@ public class JourneyNetworking {
         initialSync();
         unlockItemCommandEvent();
         rotateItemsPacket();
+        trashCanPacket();
     }
 
     public static void rotateItemsPacket() {
@@ -153,6 +160,22 @@ public class JourneyNetworking {
         });
     }
 
+    private static void trashCanPacket() {
+        PayloadTypeRegistry.playC2S().register(TrashCanPayload.ID, TrashCanPayload.CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(TrashCanPayload.ID, (payload, context) -> {
+           PlayerEntity player = context.player();
+           MinecraftServer server = context.server();
+           context.server().execute(() -> {
+               TrashcanInventory inv = TrashcanServerStorage.get(player);
+               ItemStack stack = payload.stack();
+               inv.setStack(0, stack);
+               ServerPlayerEntity playerEntity = server.getPlayerManager().getPlayer(player.getUuid());
+               ServerPlayNetworking.send(playerEntity, new SyncTrashCanPayload(stack));
+           });
+        });
+    }
+
     private static void unlockItemCommandEvent() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
            dispatcher.register(CommandManager.literal("unlockitem")
@@ -191,6 +214,10 @@ public class JourneyNetworking {
                 ServerPlayNetworking.send(handler.getPlayer(), new SyncUnlockedItemsPayload(playerState));
                 syncResearchItemsUnlocked(handler.getPlayer());
             });
+        });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            TrashcanServerStorage.remove(handler.player);
         });
     }
 
@@ -255,6 +282,30 @@ public class JourneyNetworking {
                 new CustomPayload.Id(ROTATE_ITEMS);
         public static final PacketCodec<RegistryByteBuf, RotateItemsPayload> CODEC =
                 PacketCodec.unit(new RotateItemsPayload());
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    public record TrashCanPayload(ItemStack stack) implements CustomPayload {
+        public static final CustomPayload.Id<TrashCanPayload> ID =
+                new CustomPayload.Id(TRASH_CAN);
+        public static final PacketCodec<RegistryByteBuf, TrashCanPayload> CODEC =
+                PacketCodec.tuple(ItemStack.OPTIONAL_PACKET_CODEC, TrashCanPayload::stack, TrashCanPayload::new);
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    public record SyncTrashCanPayload(ItemStack stack) implements CustomPayload {
+        public static final CustomPayload.Id<SyncTrashCanPayload> ID =
+                new CustomPayload.Id(SYNC_TRASH_CAN);
+        public static final PacketCodec<RegistryByteBuf, SyncTrashCanPayload> CODEC =
+                PacketCodec.tuple(ItemStack.OPTIONAL_PACKET_CODEC, SyncTrashCanPayload::stack, SyncTrashCanPayload::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {
