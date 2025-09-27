@@ -83,6 +83,7 @@ public class Journeycreative implements ModInitializer {
 		LOGGER.info("Hello Fabric world!");
 		JourneyNetworking.registerServerPackets();
 		JourneyNetworking.registerClientPackets();
+		JourneyNetworking.tick();
 
 		ModItems.initialize();
 		ModComponents.initialize();

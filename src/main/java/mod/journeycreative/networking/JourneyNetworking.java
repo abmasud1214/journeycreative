@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf;
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.screen.TrashcanInventory;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -70,6 +71,12 @@ public class JourneyNetworking {
         unlockItemCommandEvent();
         rotateItemsPacket();
         trashCanPacket();
+    }
+
+    public static void tick() {
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            playerCreativeItemDropCooldowns.values().forEach(Cooldown::tick);
+        });
     }
 
     public static void rotateItemsPacket() {
