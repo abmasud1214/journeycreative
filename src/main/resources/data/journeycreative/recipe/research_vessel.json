@@ -2,13 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "#E#",
-    "ESE",
+    "SCS",
     "#X#"
   ],
   "key": {
     "#": "minecraft:dragon_breath",
     "E": "minecraft:ender_eye",
-    "S": "minecraft:shulker_box",
+    "S": "minecraft:shulker_shell",
+    "C": "minecraft:chest",
     "X": "minecraft:end_crystal"
   },
   "result": {
