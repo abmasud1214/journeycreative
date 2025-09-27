@@ -3,6 +3,7 @@ package mod.journeycreative.screen;
 import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.blocks.ResearchVesselBlockEntity;
 import mod.journeycreative.blocks.ResearchVesselInventory;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -175,11 +176,25 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
 
         int inserted = 0;
         if (inventory.isEmpty()) {
-            inserted = inventory.insertIntoInventory(inputStack);
+            boolean canInsert = true;
+            if (stack.isDamageable()) {
+                int damage = stack.getDamage();
+                int maxDamage = stack.getMaxDamage();
+                canInsert = damage == 0;
+            } else if (stack.hasEnchantments()) {
+                canInsert = false;
+            }
+
+            if (canInsert) {
+                inserted = inventory.insertIntoInventory(inputStack);
+            }
             this.inventory.getTarget();
         } else {
-            ItemStack target = this.inventory.getTarget();
-            if (ItemStack.areItemsAndComponentsEqual(target, inputStack)) {
+            ItemStack target = this.inventory.getTarget().copy();
+            target.remove(DataComponentTypes.REPAIR_COST);
+            ItemStack inputStackCopy = inputStack.copy();
+            inputStackCopy.remove(DataComponentTypes.REPAIR_COST);
+            if (ItemStack.areItemsAndComponentsEqual(target, inputStackCopy)) {
                 inserted = inventory.insertIntoInventory(inputStack);
             }
         }
