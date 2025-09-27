@@ -654,6 +654,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
             while (var10.hasNext()) {
                 ItemGroup itemGroup = (ItemGroup) var10.next();
+                if (itemGroup.getType() == ItemGroup.Type.HOTBAR) continue;
                 if (this.isClickInTab(itemGroup, d, e)) {
                     return true;
                 }
@@ -677,6 +678,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
             while (var10.hasNext()) {
                 ItemGroup itemGroup = (ItemGroup) var10.next();
+                if (itemGroup.getType() == ItemGroup.Type.HOTBAR) continue;
                 if (this.isClickInTab(itemGroup, d, e)) {
                     this.setSelectedTab(itemGroup);
                     return true;
@@ -869,6 +871,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
         while (var5.hasNext()) {
             ItemGroup itemGroup = (ItemGroup)var5.next();
+            if (itemGroup.getType() == ItemGroup.Type.HOTBAR) continue;
             if (this.renderTabTooltipIfHovered(context, itemGroup, mouseX, mouseY)) {
                 break;
             }
