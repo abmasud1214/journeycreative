@@ -289,7 +289,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                             itemStack = ((JourneyScreenHandler) this.handler).getCursorStack();
                             itemStack2 = slot.getStack();
                             if (actionType == SlotActionType.SWAP) {
-                                if (!itemStack2.isEmpty()) {
+                                if (!itemStack2.isEmpty() && this.client.player.getInventory().getStack(button).isEmpty()) {
                                     this.client.player.getInventory().setStack(button, itemStack2.copyWithCount(itemStack2.getMaxCount()));
                                     this.client.player.playerScreenHandler.sendContentUpdates();
                                 }
