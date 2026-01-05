@@ -1,8 +1,13 @@
 package mod.journeycreative.screen;
 
+import mod.journeycreative.Journeycreative;
 import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.blocks.ResearchVesselBlockEntity;
 import mod.journeycreative.blocks.ResearchVesselInventory;
+import mod.journeycreative.networking.JourneyNetworking;
+import mod.journeycreative.networking.PlayerUnlocksData;
+import mod.journeycreative.networking.StateSaverAndLoader;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -15,13 +20,21 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.ShulkerBoxSlot;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.ClickType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.world.World;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ResearchVesselScreenHandler extends ScreenHandler {
     public final ResearchVesselInventory inventory;
@@ -29,7 +42,11 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
     private final Property quantity;
     private final Property capacity;
     private final Property reason;
+    private final PlayerEntity player;
     private final World world;
+    private Text warning;
+
+    private ItemStack previousTarget;
 
     public ResearchVesselScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, ResearchVesselInventory.ofSize(27));
@@ -39,6 +56,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         super(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER, syncId);
         checkSize(inventory, 27);
         this.inventory = inventory;
+        player = playerInventory.player;
         world = playerInventory.player.getWorld();
 
         inventory.onOpen(playerInventory.player);
@@ -60,6 +78,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         this.capacity = Property.create();
         this.reason = Property.create();
         ItemStack target = this.inventory.getTarget();
+        previousTarget = ItemStack.EMPTY;
+        if (player instanceof ServerPlayerEntity serverPlayerEntity && world instanceof ServerWorld serverWorld) {
+            sendWarningPacket(target, serverWorld, serverPlayerEntity);
+        }
         this.addProperty(this.quantity).set(inventory.getQuantity());
         this.addProperty(this.capacity).set(inventory.getCapacity());
         this.addProperty(this.reason).set(0);
@@ -129,8 +151,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             this.inventory.refactorInventory(target);
         }
 
-        if (this.world instanceof ServerWorld) {
-            setReason(this.inventory.getTarget());
+        if (this.world instanceof ServerWorld serverWorld && this.player instanceof ServerPlayerEntity serverPlayer) {
+            ItemStack target = this.inventory.getTarget();
+            sendWarningPacket(target, serverWorld, serverPlayer);
+            setReason(target);
             this.quantity.set(this.inventory.getQuantity());
             this.capacity.set(this.inventory.getCapacity());
         }
@@ -227,5 +251,49 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
 
     public EnderArchiveScreenHandler.researchInvalidReason getReason() {
         return EnderArchiveScreenHandler.researchInvalidReason.values()[this.reason.get()];
+    }
+
+    private void sendWarningPacket(ItemStack target, ServerWorld serverWorld, ServerPlayerEntity serverPlayer) {
+        if (!ItemStack.areItemsAndComponentsEqual(target, previousTarget)) {
+            previousTarget = target;
+            PlayerUnlocksData playerUnlocksData = StateSaverAndLoader.getPlayerState(player);
+            List<Identifier> prerequisites = ResearchConfig.RESEARCH_PREREQUISITES.getOrDefault(
+                    Registries.ITEM.getId(target.getItem()), new ArrayList<Identifier>()
+            );
+            ArrayList<Text> prereqs = new ArrayList<>();
+            if (!prerequisites.isEmpty()) {
+                for (Identifier id : prerequisites) {
+                    ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
+                    if (!playerUnlocksData.isUnlocked(prereqStack, serverWorld.getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
+                        prereqs.add(prereqStack.getItemName());
+                    }
+                }
+            }
+            if (!prereqs.isEmpty()) {
+                MutableText prereqText = Text.empty();
+                prereqText.append(Text.literal("["));
+                prereqText.append(Texts.join(prereqs, Text.literal(", ")));
+                prereqText.append(Text.literal("]"));
+                Text warning = Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqText, target.getItemName());
+                this.warning = warning;
+                ServerPlayNetworking.send(
+                        serverPlayer,
+                        new JourneyNetworking.ItemWarningMessage(warning)
+                );
+            } else {
+                ServerPlayNetworking.send(
+                        serverPlayer,
+                        new JourneyNetworking.ItemWarningMessage(Text.empty())
+                );
+            }
+        }
+    }
+
+    public Text getWarning() {
+        return warning;
+    }
+
+    public void setWarning(Text warning) {
+        this.warning = warning;
     }
 }

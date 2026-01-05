@@ -17,8 +17,10 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
 
     private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/shulker_box.png");
     private static final Identifier INVALID_RESEARCH_TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/gui/sprites/invalid_research.png");
+    private static final Identifier WARNING_RESEARCH_TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/gui/sprites/prereq_research.png");
     private static final Text CANNOT_RESEARCH_TOOLTIP = Text.translatable("container.ender_archive.cannot_research_tooltip");
     private static final Text RESEARCH_BLOCKED_TOOLTIP = Text.translatable("container.ender_archive.research_blocked_tooltip");
+    private Text warning;
 
     public ResearchVesselScreen(ResearchVesselScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -34,6 +36,7 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
+        warning = handler.getWarning();
         this.drawMouseoverTooltip(context, mouseX, mouseY);
         this.renderItemProgress(context);
         this.renderInvalid(context);
@@ -45,6 +48,7 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
         ResearchVesselScreenHandler handler = this.getScreenHandler();
         EnderArchiveScreenHandler.researchInvalidReason reason = handler.getReason();
         boolean bl = (reason == EnderArchiveScreenHandler.researchInvalidReason.BLOCKED || reason == EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED);
+        boolean bl2 = warning != null && !warning.getString().isEmpty();
         if (!(handler.getInventoryCapacity() == 0) && !bl) {
             int quantity = handler.getInventoryQuantity();
             int capacity = handler.getInventoryCapacity();
@@ -53,19 +57,29 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
         optional.ifPresent((text) -> {
             int width = this.textRenderer.getWidth(text);
             int x = this.x + 168 - width;
+            if (bl2) {
+                x -= 7;
+            }
 
             context.drawText(this.textRenderer, text, x, this.y + 6, Colors.DARK_GRAY, false);
         });
     }
-
     private void renderInvalid(DrawContext context) {
+
         ResearchVesselScreenHandler handler = this.getScreenHandler();
         EnderArchiveScreenHandler.researchInvalidReason reason = handler.getReason();
         boolean bl = (reason == EnderArchiveScreenHandler.researchInvalidReason.BLOCKED || reason == EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED);
-        if (!(handler.getInventoryCapacity() == 0) && bl) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, INVALID_RESEARCH_TEXTURE,
-                    this.x + 157, this.y + 5, 0, 0,
-                    11, 11, 11, 11);
+        boolean bl2 = warning != null && !warning.getString().isEmpty();
+        if (!(handler.getInventoryCapacity() == 0) && (bl || bl2)) {
+            if (bl) {
+                context.drawTexture(RenderPipelines.GUI_TEXTURED, INVALID_RESEARCH_TEXTURE,
+                        this.x + 157, this.y + 5, 0, 0,
+                        11, 11, 11, 11);
+            } else {
+                context.drawTexture(RenderPipelines.GUI_TEXTURED, WARNING_RESEARCH_TEXTURE,
+                        this.x + 161, this.y + 5, 0, 0,
+                        11, 11, 11, 11);
+            }
         }
     }
 
@@ -74,11 +88,17 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
         ResearchVesselScreenHandler handler = this.getScreenHandler();
         EnderArchiveScreenHandler.researchInvalidReason reason = handler.getReason();
         boolean bl = (reason == EnderArchiveScreenHandler.researchInvalidReason.BLOCKED || reason == EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED);
-        if (!(handler.getInventoryCapacity() == 0) && bl && this.isPointWithinBounds(157, 5, 11, 11, (double) mouseX, (double) mouseY)) {
-            if (reason == EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED) {
-                optional = Optional.of(CANNOT_RESEARCH_TOOLTIP);
+        boolean bl2 = warning != null && !warning.getString().isEmpty();
+        int x = bl ? 157 : 161;
+        if (!(handler.getInventoryCapacity() == 0) && (bl || bl2) && this.isPointWithinBounds(x, 5, 11, 11, (double) mouseX, (double) mouseY)) {
+            if (bl) {
+                if (reason == EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED) {
+                    optional = Optional.of(CANNOT_RESEARCH_TOOLTIP);
+                } else {
+                    optional = Optional.of(RESEARCH_BLOCKED_TOOLTIP);
+                }
             } else {
-                optional = Optional.of(RESEARCH_BLOCKED_TOOLTIP);
+                optional = Optional.of(handler.getWarning());
             }
         }
 

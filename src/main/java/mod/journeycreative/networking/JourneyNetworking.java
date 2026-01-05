@@ -33,6 +33,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Cooldown;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
@@ -48,6 +49,7 @@ public class JourneyNetworking {
     public static final Identifier SYNC_TRASH_CAN = Identifier.of(Journeycreative.MOD_ID, "sync_trash_can");
     public static final Identifier SYNC_RESEARCH_ITEMS_UNLOCKED_RULE = Identifier.of(Journeycreative.MOD_ID, "sync_research_rule");
     public static final Identifier ROTATE_ITEMS = Identifier.of(Journeycreative.MOD_ID, "rotate_items");
+    public static final Identifier SEND_ITEM_WARNING_MESSAGE = Identifier.of(Journeycreative.MOD_ID, "send_item_warning_message");
 
     public static final Identifier INITIAL_SYNC = Identifier.of(Journeycreative.MOD_ID, "initial_sync");
     static final Logger LOGGER = LogUtils.getLogger();
@@ -62,6 +64,8 @@ public class JourneyNetworking {
                 JourneyNetworking.SyncResearchItemsUnlockRulePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncTrashCanPayload.ID,
                 JourneyNetworking.SyncTrashCanPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(JourneyNetworking.ItemWarningMessage.ID,
+                JourneyNetworking.ItemWarningMessage.CODEC);
     }
 
     public static void registerServerPackets() {
@@ -313,6 +317,19 @@ public class JourneyNetworking {
                 new CustomPayload.Id(SYNC_TRASH_CAN);
         public static final PacketCodec<RegistryByteBuf, SyncTrashCanPayload> CODEC =
                 PacketCodec.tuple(ItemStack.OPTIONAL_PACKET_CODEC, SyncTrashCanPayload::stack, SyncTrashCanPayload::new);
+
+        @Override
+        public Id<? extends CustomPayload> getId() {
+            return ID;
+        }
+    }
+
+    public record ItemWarningMessage(Text warningMessage) implements CustomPayload {
+        public static final CustomPayload.Id<ItemWarningMessage> ID =
+                new CustomPayload.Id(SEND_ITEM_WARNING_MESSAGE);
+
+        public static final PacketCodec<RegistryByteBuf, ItemWarningMessage> CODEC =
+                PacketCodec.tuple(TextCodecs.PACKET_CODEC, ItemWarningMessage::warningMessage, ItemWarningMessage::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {

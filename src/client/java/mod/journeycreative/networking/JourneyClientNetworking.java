@@ -2,12 +2,14 @@ package mod.journeycreative.networking;
 
 import mod.journeycreative.keybinds.KeyInputHandler;
 import mod.journeycreative.screen.JourneyInventoryScreen;
+import mod.journeycreative.screen.ResearchVesselScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
 
 public class JourneyClientNetworking {
     public static void sendGiveItem(int slot, ItemStack stack) {
@@ -38,6 +40,7 @@ public class JourneyClientNetworking {
         ReceiveResearchItemRule();
         KeyInputHandler.register();
         ReceiveTrashcanSync();
+        ReceiveWarning();
     }
 
     private static void ReceiveUnlockedItems(){
@@ -65,6 +68,18 @@ public class JourneyClientNetworking {
                 if (current instanceof JourneyInventoryScreen screen) {
                     screen.getDeleteItemSlot().setStack(payload.stack());
                 }
+            });
+        });
+    }
+
+    private static void ReceiveWarning() {
+        ClientPlayNetworking.registerGlobalReceiver(JourneyNetworking.ItemWarningMessage.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                ScreenHandler handler = context.client().player.currentScreenHandler;
+
+                if (!(handler instanceof ResearchVesselScreenHandler rvh)) return;
+
+                rvh.setWarning(payload.warningMessage());
             });
         });
     }
