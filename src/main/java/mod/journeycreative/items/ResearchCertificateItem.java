@@ -18,7 +18,9 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -98,22 +100,23 @@ public class ResearchCertificateItem extends Item {
             List<Identifier> prerequisites = ResearchConfig.RESEARCH_PREREQUISITES.getOrDefault(
                     Registries.ITEM.getId(research_target.getItem()), new ArrayList<Identifier>()
             );
-            ArrayList<String> prereqs = new ArrayList<>();
+            ArrayList<Text> prereqs = new ArrayList<>();
             if (!prerequisites.isEmpty()) {
                 for (Identifier id : prerequisites) {
                     ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
                     if (!playerState.isUnlocked(prereqStack, serverWorld.getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
-                        prereqs.add(getItemName(prereqStack).getString());
+                        prereqs.add(getItemName(prereqStack));
                     }
                 }
             }
             if (!prereqs.isEmpty()) {
-                String prereqString = "[" + String.join(", ", prereqs) + "]";
-                player.sendMessage(Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqString, getItemName(research_target)), false);
+                MutableText prereqText = Text.empty();
+                prereqText.append(Text.literal("["));
+                prereqText.append(Texts.join(prereqs, Text.literal(", ")));
+                prereqText.append(Text.literal("]"));
+                player.sendMessage(Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqText, getItemName(research_target)), false);
                 return stack;
             }
-
-
 
             boolean unlocked = playerState.unlockItem(research_target);
             ServerPlayerEntity playerEntity = world.getServer().getPlayerManager().getPlayer(player.getUuid());
