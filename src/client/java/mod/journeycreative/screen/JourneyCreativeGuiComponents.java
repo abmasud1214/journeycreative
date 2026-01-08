@@ -83,7 +83,7 @@ public class JourneyCreativeGuiComponents {
             this.screen = screen;
         }
 
-        protected void renderWidget(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+        protected void drawIcon(DrawContext drawContext, int mouseX, int mouseY, float delta) {
             this.active = this.type.isEnabled.test(this.screen);
             this.visible = this.screen.hasAdditionalPages();
             if (this.visible) {
@@ -91,7 +91,7 @@ public class JourneyCreativeGuiComponents {
                 int v = this.active ? 0 : 12;
                 drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, JourneyCreativeGuiComponents.BUTTON_TEX, this.getX(), this.getY(), (float) (u + (this.type == JourneyCreativeGuiComponents.Type.NEXT ? 10 : 0)), (float) v, 10, 12, 256, 256);
                 if (this.isHovered()) {
-                    drawContext.drawTooltip(MinecraftClient.getInstance().textRenderer, Text.translatable("fabric.gui.creativeTabPage", new Object[]{this.screen.getCurrentPage() + 1, JourneyCreativeGuiComponents.getPageCount()}), mouseX, mouseY);
+                    drawContext.drawTooltip(MinecraftClient.getInstance().textRenderer, net.minecraft.text.Text.translatable("fabric.gui.creativeTabPage", new Object[]{this.screen.getCurrentPage() + 1, JourneyCreativeGuiComponents.getPageCount()}), mouseX, mouseY);
                 }
             }
         }

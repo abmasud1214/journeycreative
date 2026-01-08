@@ -57,7 +57,8 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
                 this.model,
                 state.openness,
                 matrices,
-                RenderLayer.getEntityCutoutNoCull(TEXTURE),
+//                RenderLayer.getEntityCutoutNoCull(TEXTURE),
+                RenderLayers.entityCutoutNoCull(TEXTURE),
                 state.lightmapCoordinates,
                 OverlayTexture.DEFAULT_UV,
                 0,
@@ -66,7 +67,8 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         matrices.pop();
         queue.submitCustom(
                 matrices,
-                RenderLayer.getEndPortal(),
+//                RenderLayer.getEndPortal(),
+                RenderLayers.endPortal(),
                 ((matricesEntry, vertexConsumer) -> {
                     renderSides(
                             state.showPortal,
@@ -111,18 +113,12 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         this.model.setAngles(openness);
     }
 
-    public void collectVertices(Direction facing, float openness, Set<Vector3f> vertices) {
-        MatrixStack matrixStack = new MatrixStack();
-        this.setTransforms(matrixStack, facing, openness);
-        this.model.getRootPart().collectVertices(matrixStack, vertices);
-    }
-
     @Environment(EnvType.CLIENT)
     private static class ResearchVesselBlockModel extends Model<Float> {
         private final ModelPart Top;
 
         public ResearchVesselBlockModel(ModelPart root) {
-            super(root, id -> RenderLayer.getEntityCutoutNoCull((Identifier) id));
+            super(root, id -> RenderLayers.entityCutoutNoCull((Identifier) id));
             this.Top = root.getChild("Top");
         }
 

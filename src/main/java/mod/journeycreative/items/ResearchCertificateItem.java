@@ -104,7 +104,8 @@ public class ResearchCertificateItem extends Item {
             if (!prerequisites.isEmpty()) {
                 for (Identifier id : prerequisites) {
                     ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
-                    if (!playerState.isUnlocked(prereqStack, serverWorld.getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
+                    if (!playerState.isUnlocked(prereqStack,
+                            serverWorld.getGameRules().getValue(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
                         prereqs.add(getItemName(prereqStack));
                     }
                 }

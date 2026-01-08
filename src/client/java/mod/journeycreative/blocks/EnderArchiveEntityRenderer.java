@@ -69,7 +69,8 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
 
         queue.submitCustom(
                 matrices,
-                RenderLayer.getEntityTranslucent(TEXTURE),
+//                RenderLayer.getEntityTranslucent(TEXTURE),
+                RenderLayers.entityTranslucent(TEXTURE),
                 (entry, consumer) -> {
                     Vec3i normalVec = state.facing.getVector();
                     for (int i = 0; i < 6; i++) {
@@ -90,7 +91,8 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
 
         queue.submitCustom(
                 matrices,
-                RenderLayer.getEndPortal(),
+//                RenderLayer.getEndPortal(),
+                RenderLayers.endPortal(),
                 (entry, consumer) -> {
                     Matrix4f model = entry.getPositionMatrix();
                     consumer.vertex(model, No16(1), No16(15.5f), No16(15));

@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.ItemStackArgumentType;
 import net.minecraft.command.argument.RegistryKeyArgumentType;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -190,7 +191,12 @@ public class JourneyNetworking {
     private static void unlockItemCommandEvent() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
            dispatcher.register(CommandManager.literal("unlockitem")
-                   .requires(src -> src.hasPermissionLevel(2))
+                   .requires(src -> {
+                       var player = src.getPlayer();
+                       return player != null &&
+                               src.getServer() != null &&
+                               src.getServer().getPlayerManager().isOperator(src.getPlayer().getPlayerConfigEntry());
+                   })
                    .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(registryAccess))
                            .executes(JourneyNetworking::unlockItemCommand)));
         });
@@ -233,7 +239,11 @@ public class JourneyNetworking {
     }
 
     public static void syncResearchItemsUnlocked(ServerPlayerEntity player) {
-        boolean value = player.getEntityWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
+//        boolean value = player.getEntityWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
+        boolean value = player
+                .getEntityWorld()
+                        .getGameRules()
+                                .getValue(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
         player.getEntityWorld().getServer().execute(() -> {
             ServerPlayNetworking.send(player, new SyncResearchItemsUnlockRulePayload(value));
         });

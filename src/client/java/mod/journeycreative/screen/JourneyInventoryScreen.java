@@ -406,10 +406,10 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         );
     }
 
-    public void resize(MinecraftClient client, int width, int height) {
+    public void resize(int width, int height) {
         int i = ((JourneyScreenHandler) this.handler).getRow(this.scrollPosition);
         String string  = this.searchBox.getText();
-        this.init(client, width, height);
+        this.init(width, height);
         this.searchBox.setText(string);
         if (!this.searchBox.getText().isEmpty()) {
             this.search();
@@ -872,9 +872,8 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-        this.statusEffectsDisplay.drawStatusEffects(context, mouseX, mouseY);
+        this.statusEffectsDisplay.render(context, mouseX, mouseY);
         super.render(context, mouseX, mouseY, deltaTicks);
-        this.statusEffectsDisplay.drawStatusEffectTooltip(context, mouseX, mouseY);
         Iterator var5 = ItemGroups.getGroupsToDisplay().iterator();
 
         while (var5.hasNext()) {
