@@ -9,6 +9,7 @@ import net.minecraft.util.math.Direction;
 public class ResearchVesselEntityRenderState extends EntityRenderState {
     public float openProgress;
     public Direction facing;
+    public boolean showPortal;
 
     public ResearchVesselEntityRenderState() {
         this.facing = Direction.DOWN;

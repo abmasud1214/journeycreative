@@ -5,19 +5,21 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.client.render.block.entity.state.BlockEntityRenderState;
+import net.minecraft.client.render.command.ModelCommandRenderer;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.model.LoadedEntityModels;
+import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -25,37 +27,54 @@ import java.util.Objects;
 import java.util.Set;
 
 @Environment(EnvType.CLIENT)
-public class ResearchVesselEntityRenderer implements BlockEntityRenderer<ResearchVesselBlockEntity> {
+public class ResearchVesselEntityRenderer implements BlockEntityRenderer<ResearchVesselBlockEntity, ResearchVesselEntityRenderer.ResearchVesselRenderState> {
     private final ResearchVesselBlockModel model;
     private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/research_vessel.png");
 
     public ResearchVesselEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-        this(ctx.getLoadedEntityModels());
+        this.model = new ResearchVesselBlockModel(ctx.getLayerModelPart(ModModelLayers.RESEARCH_VESSEL));
     }
 
-    public ResearchVesselEntityRenderer(LoadedEntityModels models) {
-        this.model = new ResearchVesselBlockModel(models.getModelPart(ModModelLayers.RESEARCH_VESSEL));
+    @Override
+    public ResearchVesselRenderState createRenderState() {
+        return new ResearchVesselRenderState();
     }
 
-    public void render(ResearchVesselBlockEntity researchVesselBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, Vec3d vec3d) {
-        Direction direction = Direction.UP;
-
-        float g = researchVesselBlockEntity.getAnimationProgress(f);
-        boolean portal = researchVesselBlockEntity.getAnimationStage() == ResearchVesselBlockEntity.AnimationStage.OPENED;
-        this.render(matrixStack, vertexConsumerProvider, i, j, direction, g, portal);
+    @Override
+    public void updateRenderState(ResearchVesselBlockEntity blockEntity, ResearchVesselRenderState state, float tickProgress, Vec3d cameraPos, @Nullable ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlay) {
+        BlockEntityRenderer.super.updateRenderState(blockEntity, state, tickProgress, cameraPos, crumblingOverlay);
+        state.pos = blockEntity.getPos();
+        state.facing = Direction.DOWN;
+        state.openness = blockEntity.getAnimationProgress(tickProgress);
+        state.showPortal = blockEntity.getAnimationStage() == ResearchVesselBlockEntity.AnimationStage.OPENED;
     }
 
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, Direction facing, float openness, boolean show_portal) {
+    @Override
+    public void render(ResearchVesselRenderState state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState camera) {
         matrices.push();
-        this.setTransforms(matrices, facing, openness);
-        ResearchVesselBlockModel blockModel = this.model;
-        Objects.requireNonNull(blockModel);
-//        VertexConsumer vertexConsumer = textureId.getVertexConsumer(vertexConsumers, blockModel::getLayer);
-        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
-        this.model.render(matrices, vertexConsumer, light, overlay);
+        this.setTransforms(matrices, state.facing, state.openness);
+        queue.submitModel(
+                this.model,
+                state.openness,
+                matrices,
+                RenderLayer.getEntityCutoutNoCull(TEXTURE),
+                state.lightmapCoordinates,
+                OverlayTexture.DEFAULT_UV,
+                0,
+                null
+        );
         matrices.pop();
-        Matrix4f matrix4f = matrices.peek().getPositionMatrix();
-        this.renderSides(show_portal, matrix4f, vertexConsumers.getBuffer(RenderLayer.getEndPortal()));
+        queue.submitCustom(
+                matrices,
+                RenderLayer.getEndPortal(),
+                ((matricesEntry, vertexConsumer) -> {
+                    renderSides(
+                            state.showPortal,
+                            matricesEntry.getPositionMatrix(),
+                            vertexConsumer
+                    );
+                })
+        );
     }
 
     private void renderSides(boolean show_portal, Matrix4f matrix, VertexConsumer vertexConsumer) {
@@ -89,7 +108,7 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         matrices.scale(0.9995F, 0.9995F, 0.9995F);
         matrices.scale(1.0F, -1.0F, -1.0F);
         matrices.translate(0.0F, -1.0F, 0.0F);
-        this.model.animateTop(openness);
+        this.model.setAngles(openness);
     }
 
     public void collectVertices(Direction facing, float openness, Set<Vector3f> vertices) {
@@ -99,16 +118,23 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
     }
 
     @Environment(EnvType.CLIENT)
-    private static class ResearchVesselBlockModel extends Model {
+    private static class ResearchVesselBlockModel extends Model<Float> {
         private final ModelPart Top;
 
         public ResearchVesselBlockModel(ModelPart root) {
-            super(root, RenderLayer::getEntityCutoutNoCull);
+            super(root, id -> RenderLayer.getEntityCutoutNoCull((Identifier) id));
             this.Top = root.getChild("Top");
         }
 
-        public void animateTop(float openness) {
+        public void setAngles(Float openness) {
+            super.setAngles(openness);
             this.Top.setOrigin(0.0F, 24.0F - openness * 11.0F, 0.0F);
         }
+    }
+
+    public class ResearchVesselRenderState extends BlockEntityRenderState {
+        public Direction facing;
+        public float openness;
+        public boolean showPortal;
     }
 }

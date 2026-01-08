@@ -57,9 +57,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         checkSize(inventory, 27);
         this.inventory = inventory;
         player = playerInventory.player;
-        world = playerInventory.player.getWorld();
+        world = playerInventory.player.getEntityWorld();
 
         inventory.onOpen(playerInventory.player);
+
 
         int m;
         int l;

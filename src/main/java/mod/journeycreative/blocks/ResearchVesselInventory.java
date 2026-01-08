@@ -95,4 +95,8 @@ public interface ResearchVesselInventory extends Inventory {
     default int insertIntoInventory(ItemStack stack) {
         return 0;
     }
+
+    default void onOpen(PlayerEntity player) { };
+
+    default void onClose(PlayerEntity player) { };
 }

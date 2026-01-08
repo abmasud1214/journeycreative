@@ -43,7 +43,10 @@ public class ResearchVesselEntityModel extends EntityModel<ResearchVesselEntityR
     public void setAngles(ResearchVesselEntityRenderState researchVesselEntityRenderState) {
         super.setAngles(researchVesselEntityRenderState);
 
-        float f = (researchVesselEntityRenderState.openProgress * 11.0F) + 5.0F;
+        this.Top.resetTransform();
+
+//        float f = (researchVesselEntityRenderState.openProgress * 11.0F) + 5.0F;
+        float f = 24.0F - researchVesselEntityRenderState.openProgress * 11.0F;
         this.Top.setOrigin(0, f, 0);
     }
 

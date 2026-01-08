@@ -41,7 +41,7 @@ public class StateSaverAndLoader extends PersistentState {
     }
 
     public static PlayerUnlocksData getPlayerState(LivingEntity player) {
-        StateSaverAndLoader serverState = getServerState(player.getWorld().getServer());
+        StateSaverAndLoader serverState = getServerState(player.getEntityWorld().getServer());
 
         PlayerUnlocksData playerState = serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerUnlocksData());
 

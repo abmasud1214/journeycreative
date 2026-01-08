@@ -76,7 +76,7 @@ public class ResearchCertificateItem extends Item {
 
     @Override
     public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        if (!world.isClient && user instanceof PlayerEntity player) {
+        if (!world.isClient() && user instanceof PlayerEntity player) {
             int heldTicks = this.getMaxUseTime(stack, user) - remainingUseTicks;
             player.sendMessage(Text.literal("[" + "+".repeat(heldTicks) + "-".repeat(remainingUseTicks) + "]"), true);
         }

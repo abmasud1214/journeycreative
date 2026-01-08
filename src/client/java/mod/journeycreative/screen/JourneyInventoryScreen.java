@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.itemgroup.v1.FabricCreativeInventoryScreen
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 
 import net.minecraft.client.gui.ScreenPos;
@@ -19,6 +20,8 @@ import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.ingame.*;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
+import net.minecraft.client.input.CharInput;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.HotbarStorage;
@@ -172,7 +175,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         if (this.client != null) {
             ClientPlayerEntity clientPlayerEntity = this.client.player;
             if (clientPlayerEntity != null) {
-                this.updateDisplayParameters(clientPlayerEntity.networkHandler.getEnabledFeatures(), this.shouldShowOperatorTab(clientPlayerEntity), clientPlayerEntity.getWorld().getRegistryManager());
+                this.updateDisplayParameters(clientPlayerEntity.networkHandler.getEnabledFeatures(), this.shouldShowOperatorTab(clientPlayerEntity), clientPlayerEntity.getEntityWorld().getRegistryManager());
 //                if (!clientPlayerEntity.isInCreativeMode()) {
 //                    this.client.setScreen(new InventoryScreen(clientPlayerEntity));
 //                }
@@ -423,14 +426,14 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
     }
 
-    public boolean charTyped(char chr, int modifiers) {
+    public boolean charTyped(CharInput charInput) {
         if (this.ignoreTypedCharacter) {
             return false;
         } else if (selectedTab.getType() != ItemGroup.Type.SEARCH) {
             return false;
         } else {
             String string = this.searchBox.getText();
-            if (this.searchBox.charTyped(chr, modifiers)) {
+            if (this.searchBox.charTyped(charInput)) {
                 if (!Objects.equals(string, this.searchBox.getText())) {
                     this.search();
                 }
@@ -442,7 +445,8 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
     }
 
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyInput keyInput) {
+        int keyCode = keyInput.getKeycode();
         if (keyCode == 266) {
             if (this.switchToPreviousPage()) {
                 return true;
@@ -452,29 +456,29 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
         this.ignoreTypedCharacter = false;
         if (selectedTab.getType() != ItemGroup.Type.SEARCH) {
-            if (this.client.options.chatKey.matchesKey(keyCode, scanCode)) {
+            if (this.client.options.chatKey.matchesKey(keyInput)) {
                 this.ignoreTypedCharacter = true;
                 this.setSelectedTab(ItemGroups.getSearchGroup());
                 return true;
             } else {
-                return super.keyPressed(keyCode, scanCode, modifiers);
+                return super.keyPressed(keyInput);
             }
         } else {
             boolean bl = !this.isCreativeInventorySlot(this.focusedSlot) || this.focusedSlot.hasStack();
-            boolean bl2 = InputUtil.fromKeyCode(keyCode, scanCode).toInt().isPresent();
-            if (bl && bl2 && this.handleHotbarKeyPressed(keyCode, scanCode)) {
+            boolean bl2 = InputUtil.fromKeyCode(keyInput).toInt().isPresent();
+            if (bl && bl2 && this.handleHotbarKeyPressed(keyInput)) {
                 this.ignoreTypedCharacter = true;
                 return true;
             } else {
                 String string = this.searchBox.getText();
-                if (this.searchBox.keyPressed(keyCode, scanCode, modifiers)) {
+                if (this.searchBox.keyPressed(keyInput)) {
                     if (!Objects.equals(string, this.searchBox.getText())) {
                         this.search();
                     }
 
                     return true;
                 } else {
-                    return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != 256 || super.keyPressed(keyCode, scanCode, modifiers);
+                    return this.searchBox.isFocused() && this.searchBox.isVisible() && keyCode != 256 || super.keyPressed(keyInput);
                 }
             }
         }
@@ -583,9 +587,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         return c != 0 ? c : a.getPath().compareTo(b.getPath());
     }
 
-    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
+    public boolean keyReleased(KeyInput keyInput) {
         this.ignoreTypedCharacter = false;
-        return super.keyReleased(keyCode, scanCode, modifiers);
+        return super.keyReleased(keyInput);
     }
 
     private void search() {
@@ -646,8 +650,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
     }
 
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        double mouseX = click.x(), mouseY = click.y();
+        if (click.button() == 0) {
             double d = mouseX - (double) this.x;
             double e = mouseY - (double) this.y;
             Iterator var10 = ItemGroups.getGroupsToDisplay().iterator();
@@ -666,11 +671,12 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(click, doubled);
     }
 
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+    public boolean mouseReleased(Click click) {
+        double mouseX = click.x(), mouseY = click.y();
+        if (click.button() == 0) {
             double d = mouseX - (double) this.x;
             double e = mouseY - (double) this.y;
             this.scrolling = false;
@@ -686,7 +692,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             }
         }
 
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(click);
     }
 
     private boolean hasScrollbar() {
@@ -849,7 +855,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         return mouseX >= (double) k && mouseY >= (double) l && mouseX < (double) m && mouseY < (double) n;
     }
 
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
+        double mouseX = click.x();
+        double mouseY = click.y();
         if (this.scrolling) {
             int i = this.y + 18;
             int j = i + 112;
@@ -858,7 +866,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             ((JourneyScreenHandler) this.handler).scrollItems(this.scrollPosition);
             return true;
         } else {
-            return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+            return super.mouseDragged(click, deltaX, deltaY);
         }
     }
 
@@ -1029,7 +1037,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
     public static void onHotbarKeyPress(MinecraftClient client, int index, boolean restore, boolean save) {
         ClientPlayerEntity clientPlayerEntity = client.player;
-        DynamicRegistryManager dynamicRegistryManager = clientPlayerEntity.getWorld().getRegistryManager();
+        DynamicRegistryManager dynamicRegistryManager = clientPlayerEntity.getEntityWorld().getRegistryManager();
         HotbarStorage hotbarStorage = client.getCreativeHotbarStorage();
         HotbarStorageEntry hotbarStorageEntry = hotbarStorage.getSavedHotbar(index);
         if (restore) {
@@ -1316,7 +1324,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         public boolean canTakeItems(PlayerEntity playerEntity) {
             ItemStack itemStack = this.getStack();
             if (super.canTakeItems(playerEntity) && !itemStack.isEmpty()) {
-                return itemStack.isItemEnabled(playerEntity.getWorld().getEnabledFeatures()) && !itemStack.contains(DataComponentTypes.CREATIVE_SLOT_LOCK);
+                return itemStack.isItemEnabled(playerEntity.getEntityWorld().getEnabledFeatures()) && !itemStack.contains(DataComponentTypes.CREATIVE_SLOT_LOCK);
             } else {
                 return itemStack.isEmpty();
             }

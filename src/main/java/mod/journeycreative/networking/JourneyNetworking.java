@@ -233,8 +233,8 @@ public class JourneyNetworking {
     }
 
     public static void syncResearchItemsUnlocked(ServerPlayerEntity player) {
-        boolean value = player.getWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
-        player.getWorld().getServer().execute(() -> {
+        boolean value = player.getEntityWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
+        player.getEntityWorld().getServer().execute(() -> {
             ServerPlayNetworking.send(player, new SyncResearchItemsUnlockRulePayload(value));
         });
     }

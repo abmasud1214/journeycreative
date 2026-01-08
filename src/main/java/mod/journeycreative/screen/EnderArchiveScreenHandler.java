@@ -39,7 +39,7 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
     }
 
     public EnderArchiveScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
-        this(syncId, playerInventory, context, playerInventory.player.getWorld());
+        this(syncId, playerInventory, context, playerInventory.player.getEntityWorld());
     }
 
     private EnderArchiveScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context, World world) {
