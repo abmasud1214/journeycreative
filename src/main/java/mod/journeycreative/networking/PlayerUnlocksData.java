@@ -7,7 +7,10 @@ import mod.journeycreative.Journeycreative;
 import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.Identifier;
 
 import java.util.Set;
@@ -68,7 +71,6 @@ public class PlayerUnlocksData {
 
         Set<ComponentType<?>> keepComponents = Set.of(
                 DataComponentTypes.POTION_CONTENTS,
-                DataComponentTypes.POTION_DURATION_SCALE,
                 DataComponentTypes.STORED_ENCHANTMENTS,
                 DataComponentTypes.INSTRUMENT,
                 DataComponentTypes.FIREWORKS,
@@ -86,8 +88,6 @@ public class PlayerUnlocksData {
         return copy;
     }
 
-
-
     public static final Codec<PlayerUnlocksData> PLAYER_UNLOCKS_CODEC = ItemStack.CODEC
             .listOf()
             .xmap(
@@ -100,4 +100,26 @@ public class PlayerUnlocksData {
                     PlayerUnlocksData::new,
                     PlayerUnlocksData::getUnlockedItemKeys
             );
+
+    public NbtCompound toNbt(RegistryWrapper.WrapperLookup registries) {
+        NbtCompound nbt = new NbtCompound();
+        NbtList list = new NbtList();
+        for (ItemStack stack : unlockedItemKeys) {
+            list.add(stack.toNbt(registries));
+        }
+
+        nbt.put("unlockedItems", list);
+        return nbt;
+    }
+
+    public static PlayerUnlocksData fromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+        ImmutableSet.Builder<ItemStack> builder = ImmutableSet.builder();
+        NbtList list = nbt.getList("unlockedItems", 10);
+
+        for (int i = 0; i < list.size(); i++) {
+            ItemStack.fromNbt(registries, list.getCompound(i)).ifPresent(builder::add);
+        }
+
+        return new PlayerUnlocksData(builder.build());
+    }
 }

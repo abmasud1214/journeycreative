@@ -11,7 +11,6 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.component.ComponentMap;
-import net.minecraft.component.ComponentsAccess;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -83,11 +82,6 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
     protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         super.writeNbt(nbt, registries);
         Inventories.writeNbt(nbt, this.inventory, registries);
-    }
-
-    @Override
-    public void  onBlockReplaced(BlockPos pos, BlockState oldState) {
-
     }
 
     protected Text getContainerName() {

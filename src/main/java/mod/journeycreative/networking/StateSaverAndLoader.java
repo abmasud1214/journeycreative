@@ -18,7 +18,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
-import net.minecraft.world.PersistentStateType;
 import net.minecraft.world.World;
 
 import java.util.HashMap;
@@ -32,12 +31,28 @@ public class StateSaverAndLoader extends PersistentState {
     private StateSaverAndLoader() {
     }
 
-    private StateSaverAndLoader(HashMap<UUID, PlayerUnlocksData> players) {
-        this.players = players;
+    @Override
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+        NbtCompound playersNbt = new NbtCompound();
+
+        players.forEach(((uuid, playerUnlocksData) -> {
+            playersNbt.put(uuid.toString(), playerUnlocksData.toNbt(registries));
+        }));
+
+        nbt.put("players", playersNbt);
+        return nbt;
     }
 
-    public HashMap<UUID, PlayerUnlocksData> getPlayers() {
-        return players;
+    public static StateSaverAndLoader createFromNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+        StateSaverAndLoader state = new StateSaverAndLoader();
+        NbtCompound playersNbt = nbt.getCompound("players");
+
+        for (String key : playersNbt.getKeys()) {
+            UUID uuid = UUID.fromString(key);
+            PlayerUnlocksData data = PlayerUnlocksData.fromNbt(playersNbt.getCompound(key), registries);
+            state.players.put(uuid, data);
+        }
+        return state;
     }
 
     public static PlayerUnlocksData getPlayerState(LivingEntity player) {
@@ -48,46 +63,16 @@ public class StateSaverAndLoader extends PersistentState {
         return playerState;
     }
 
-    public static final Codec<UUID> UUID_CODEC = Codec.STRING.xmap(UUID::fromString, UUID::toString);
-
-//    private static final Codec<RegistryKey<Item>> ITEM_KEY_CODEC = RegistryKey.createCodec(RegistryKeys.ITEM);
-
-//    public static final Codec<StateSaverAndLoader> CODEC = ITEM_KEY_CODEC
-//            .listOf()
-//            .xmap(
-//                    ImmutableSet::copyOf,
-//                    ImmutableList::copyOf
-//            )
-//            .fieldOf("unlockedItems")
-//            .codec()
-//            .xmap(
-//                    StateSaverAndLoader::new,
-//                    StateSaverAndLoader::getUnlockedItems
-//            );
-
-    private static final Codec<HashMap<UUID, PlayerUnlocksData>> PLAYER_DATA_CODEC =
-            Codec.unboundedMap(UUID_CODEC, PlayerUnlocksData.PLAYER_UNLOCKS_CODEC)
-                    .xmap(HashMap::new, map -> map);
-
-    public static final Codec<StateSaverAndLoader> CODEC =
-            PLAYER_DATA_CODEC.xmap(
-                    StateSaverAndLoader::new,
-                    StateSaverAndLoader::getPlayers
-            );
-
-
-    private static PersistentStateType<StateSaverAndLoader> type = new PersistentStateType<>(
-            (String) Journeycreative.MOD_ID,
+    private static Type<StateSaverAndLoader> type = new Type<>(
             StateSaverAndLoader::new,
-            CODEC,
+            StateSaverAndLoader::createFromNbt,
             null
     );
 
     public static StateSaverAndLoader getServerState(MinecraftServer server) {
-        ServerWorld serverWorld = server.getWorld(World.OVERWORLD);
-        assert serverWorld != null;
+        PersistentStateManager persistentStateManager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
 
-        StateSaverAndLoader state = serverWorld.getPersistentStateManager().getOrCreate(type);
+        StateSaverAndLoader state = persistentStateManager.getOrCreate(type, Journeycreative.MOD_ID);
 
         state.markDirty();
 
