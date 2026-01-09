@@ -35,7 +35,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
-import net.minecraft.util.Cooldown;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ public class JourneyNetworking {
 
     public static final Identifier INITIAL_SYNC = Identifier.of(Journeycreative.MOD_ID, "initial_sync");
     static final Logger LOGGER = LogUtils.getLogger();
-    private static final Map<UUID, Cooldown> playerCreativeItemDropCooldowns = new HashMap<>();
+    private static final Map<UUID, Integer> playerCreativeItemDropCooldowns = new HashMap<>();
 
     private static final DynamicCommandExceptionType INVALID_ITEM_EXCEPTION =
             new DynamicCommandExceptionType(id -> Text.literal("Unknown item: " + id));
@@ -76,12 +75,6 @@ public class JourneyNetworking {
         unlockItemCommandEvent();
         rotateItemsPacket();
         trashCanPacket();
-    }
-
-    public static void tick() {
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            playerCreativeItemDropCooldowns.values().forEach(Cooldown::tick);
-        });
     }
 
     public static void rotateItemsPacket() {
@@ -124,6 +117,17 @@ public class JourneyNetworking {
         });
     }
 
+    public static void tick() {
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            playerCreativeItemDropCooldowns.entrySet().removeIf(entry -> {
+                int remaining = entry.getValue() - 1;
+                if (remaining <= 0) return true;
+                entry.setValue(remaining);
+                return false;
+            });
+        });
+    }
+
     private static void giveItemPacket(){
         PayloadTypeRegistry.playC2S().register(GiveItemPayload.ID, GiveItemPayload.CODEC);
 
@@ -142,16 +146,16 @@ public class JourneyNetworking {
 //               if (unlocks.isUnlocked(stack.getItem())) {
 //               }
                 UUID uuid = player.getUuid();
-                playerCreativeItemDropCooldowns.putIfAbsent(uuid, new Cooldown(20, 1480));
-                Cooldown cooldown = playerCreativeItemDropCooldowns.get(uuid);
+                playerCreativeItemDropCooldowns.putIfAbsent(uuid, 20);
+                int cooldown = playerCreativeItemDropCooldowns.get(uuid);
 
                 if (bl2 && bl3) {
                     player.playerScreenHandler.getSlot(slot).setStack(stack);
                     player.playerScreenHandler.sendContentUpdates();
                 } else if (bl && bl3) {
-                    if (cooldown.canUse()) {
-                        cooldown.increment();
+                    if (cooldown < 1480) {
                         player.dropItem(stack, true);
+                        playerCreativeItemDropCooldowns.put(uuid, cooldown + 20);
                     } else {
                         LOGGER.warn("Player {} was dropping items too fast in journey mode, ignoring.", player.getName().getString());
                     }

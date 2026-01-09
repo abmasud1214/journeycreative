@@ -32,14 +32,14 @@ public class ModBlocks {
     private static Block register(String name, Function<AbstractBlock.Settings, Block> blockFactory,
                                   AbstractBlock.Settings blockSettings){
         RegistryKey<Block> blockKey = keyOfBlock(name);
-        Block block = blockFactory.apply(blockSettings.registryKey(blockKey));
+        Block block = blockFactory.apply(blockSettings);
         return Registry.register(Registries.BLOCK, blockKey, block);
     }
 
     private static BlockItem register(String name, Block block, BiFunction<Block, Item.Settings, BlockItem> itemFactory,
                                       Item.Settings itemSettings) {
         RegistryKey<Item> itemRegistryKey = keyOfItem(name);
-        BlockItem item = itemFactory.apply(block, itemSettings.registryKey(itemRegistryKey));
+        BlockItem item = itemFactory.apply(block, itemSettings);
         return Registry.register(Registries.ITEM, itemRegistryKey, item);
     }
 
