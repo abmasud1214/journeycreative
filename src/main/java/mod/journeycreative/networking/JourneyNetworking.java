@@ -32,6 +32,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Cooldown;
@@ -244,10 +245,12 @@ public class JourneyNetworking {
     }
 
     public static void syncResearchItemsUnlocked(ServerPlayerEntity player) {
-        boolean value = player.getWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
-        player.getWorld().getServer().execute(() -> {
-            ServerPlayNetworking.send(player, new SyncResearchItemsUnlockRulePayload(value));
-        });
+        if (player.getWorld() instanceof ServerWorld serverWorld) {
+            boolean value = serverWorld.getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
+            player.getWorld().getServer().execute(() -> {
+                ServerPlayNetworking.send(player, new SyncResearchItemsUnlockRulePayload(value));
+            });
+        }
     }
 
     public record GiveItemPayload(int slot, ItemStack stack) implements CustomPayload {

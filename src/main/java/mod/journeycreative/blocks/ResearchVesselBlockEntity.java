@@ -20,13 +20,13 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
@@ -65,24 +65,24 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
     }
 
     @Override
-    protected void readData(ReadView view) {
-        super.readData(view);
-        this.readInventoryNbt(view);
+    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+        super.readNbt(nbt, registries);
+        this.readInventoryNbt(nbt, registries);
     }
 
     public int size() {
         return this.inventory.size();
     }
 
-    public void readInventoryNbt(ReadView readView) {
+    public void readInventoryNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         this.inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
-        Inventories.readData(readView, this.inventory);
+        Inventories.readNbt(nbt, this.inventory, registries);
     }
 
     @Override
-    protected void writeData(WriteView view) {
-        super.writeData(view);
-        Inventories.writeData(view, this.inventory, false);
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
+        super.writeNbt(nbt, registries);
+        Inventories.writeNbt(nbt, this.inventory, registries);
     }
 
     @Override
@@ -344,8 +344,8 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
     }
 
     @Override
-    public void removeFromCopiedStackData(WriteView view) {
-        view.remove("target");
+    public void removeFromCopiedStackNbt(NbtCompound nbt) {
+        nbt.remove("target");
     }
 
     public static enum AnimationStage {
