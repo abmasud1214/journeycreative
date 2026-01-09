@@ -48,7 +48,7 @@ public class ResearchCertificateItem extends Item {
         return item.getName();
     }
 
-    public static void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         boolean exists = stack.contains(ModComponents.RESEARCH_ITEM_COMPONENT);
 //        boolean exists = true;
         if (exists) {

@@ -16,7 +16,7 @@ public class EnderArchiveBlockItem extends BlockItem {
         super(block, settings);
     }
 
-    public static void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.add(Text.translatable("item.journeycreative.ender_archive.tooptip",
                 Registries.ITEM.get(Identifier.of("journeycreative:research_vessel")).getName(),
                 Registries.ITEM.get(Identifier.of("journeycreative:research_certificate")).getName()

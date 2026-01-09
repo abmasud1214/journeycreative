@@ -147,7 +147,6 @@ public class JourneyNetworking {
 
                 if (bl2 && bl3) {
                     player.playerScreenHandler.getSlot(slot).setStack(stack);
-                    player.playerScreenHandler.setReceivedStack(slot, stack);
                     player.playerScreenHandler.sendContentUpdates();
                 } else if (bl && bl3) {
                     if (cooldown.canUse()) {

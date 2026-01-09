@@ -27,16 +27,6 @@ public class JourneycreativeClient implements ClientModInitializer {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		JourneyClientNetworking.RegisterClientPackets();
 
-		ItemTooltipCallback.EVENT.register(((itemStack, tooltipContext, tooltipType, list) -> {
-			if (itemStack.isOf(ModItems.RESEARCH_CERTIFICATE)) {
-				ResearchCertificateItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
-			} else if (itemStack.isOf(ModBlocks.RESEARCH_VESSEL_BLOCK_ITEM)) {
-				ResearchVesselBlockItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
-			} else if (itemStack.isOf(ModBlocks.ENDER_ARCHIVE_BLOCK_ITEM)) {
-				EnderArchiveBlockItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
-			}
-		}));
-
 		ModScreensClient.initialize();
 		ModModelLayers.initialize();
 		ModKeyBindings.register();

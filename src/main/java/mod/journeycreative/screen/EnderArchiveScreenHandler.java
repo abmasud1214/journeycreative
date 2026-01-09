@@ -62,7 +62,7 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
     }
 
     protected void onTakeOutput(PlayerEntity player, ItemStack stack) {
-        stack.onCraftByPlayer(player, stack.getCount());
+        stack.onCraftByPlayer(world, player, stack.getCount());
         this.decrementStack(0);
         this.context.run((world, pos) -> {
             world.syncWorldEvent(1044, pos, 0);

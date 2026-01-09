@@ -21,7 +21,7 @@ public class ResearchVesselBlockItem extends BlockItem {
         super(block, settings);
     }
 
-    public static void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         tooltip.removeIf(text -> {
             if (text.getContent() instanceof TranslatableTextContent content) {
                 String key = content.getKey();
