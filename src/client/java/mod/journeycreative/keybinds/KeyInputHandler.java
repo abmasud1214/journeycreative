@@ -9,10 +9,14 @@ public class KeyInputHandler {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (ModKeyBindings.ROTATE_INVENTORY.wasPressed()) {
                 if (client.player != null) {
-                    ClientPlayNetworking.send(new JourneyNetworking.RotateItemsPayload());
+                    ClientPlayNetworking.send(new JourneyNetworking.RotateItemsPayload(false));
+                }
+            }
+            while (ModKeyBindings.REVERSE_ROTATE_INVENTORY.wasPressed()) {
+                if (client.player != null) {
+                    ClientPlayNetworking.send(new JourneyNetworking.RotateItemsPayload(true));
                 }
             }
         });
     }
-
 }

@@ -90,6 +90,8 @@ public class JourneyNetworking {
             PlayerEntity player = context.player();
             PlayerInventory inv = player.getInventory();
 
+            boolean reversed = payload.reversed();
+
             List<ItemStack> hotbar = new ArrayList<>();
             List<ItemStack> row1 = new ArrayList<>();
             List<ItemStack> row2 = new ArrayList<>();
@@ -101,11 +103,20 @@ public class JourneyNetworking {
             for (int i = 27; i < 36; i++) row3.add(inv.getStack(i));
 
             // Rotate
-            for (int i = 0; i < 9; i++) {
-                inv.setStack(i, row3.get(i));       // hotbar <- row3
-                inv.setStack(i + 9, hotbar.get(i)); // row1 <- hotbar
-                inv.setStack(i + 18, row1.get(i));  // row2 <- row1
-                inv.setStack(i + 27, row2.get(i));  // row3 <- row2
+            if (!reversed) {
+                for (int i = 0; i < 9; i++) {
+                    inv.setStack(i, row3.get(i));       // hotbar <- row3
+                    inv.setStack(i + 9, hotbar.get(i)); // row1 <- hotbar
+                    inv.setStack(i + 18, row1.get(i));  // row2 <- row1
+                    inv.setStack(i + 27, row2.get(i));  // row3 <- row2
+                }
+            } else {
+                for (int i = 0; i < 9; i++) {
+                    inv.setStack(i, row1.get(i)); // hotbar <- row1
+                    inv.setStack(i + 9, row2.get(i)); // row1 <- row2
+                    inv.setStack(i + 18, row3.get(i)); // row2 <- row3
+                    inv.setStack(i + 27, hotbar.get(i)); // row3 <- hotbar
+                }
             }
 
             player.currentScreenHandler.sendContentUpdates();
@@ -288,11 +299,11 @@ public class JourneyNetworking {
         }
     }
 
-    public record RotateItemsPayload() implements CustomPayload {
+    public record RotateItemsPayload(boolean reversed) implements CustomPayload {
         public static final CustomPayload.Id<RotateItemsPayload> ID =
                 new CustomPayload.Id(ROTATE_ITEMS);
         public static final PacketCodec<RegistryByteBuf, RotateItemsPayload> CODEC =
-                PacketCodec.unit(new RotateItemsPayload());
+                PacketCodec.tuple(PacketCodecs.BOOLEAN, RotateItemsPayload::reversed, RotateItemsPayload::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {
