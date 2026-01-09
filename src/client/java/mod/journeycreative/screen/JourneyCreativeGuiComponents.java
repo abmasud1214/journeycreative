@@ -10,6 +10,7 @@ import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
@@ -89,7 +90,7 @@ public class JourneyCreativeGuiComponents {
             if (this.visible) {
                 int u = this.active && this.isHovered() ? 20 : 0;
                 int v = this.active ? 0 : 12;
-                drawContext.drawTexture(RenderPipelines.GUI_TEXTURED, JourneyCreativeGuiComponents.BUTTON_TEX, this.getX(), this.getY(), (float) (u + (this.type == JourneyCreativeGuiComponents.Type.NEXT ? 10 : 0)), (float) v, 10, 12, 256, 256);
+                drawContext.drawTexture(RenderLayer::getGuiTextured, JourneyCreativeGuiComponents.BUTTON_TEX, this.getX(), this.getY(), (float) (u + (this.type == JourneyCreativeGuiComponents.Type.NEXT ? 10 : 0)), (float) v, 10, 12, 256, 256);
                 if (this.isHovered()) {
                     drawContext.drawTooltip(MinecraftClient.getInstance().textRenderer, Text.translatable("fabric.gui.creativeTabPage", new Object[]{this.screen.getCurrentPage() + 1, JourneyCreativeGuiComponents.getPageCount()}), mouseX, mouseY);
                 }

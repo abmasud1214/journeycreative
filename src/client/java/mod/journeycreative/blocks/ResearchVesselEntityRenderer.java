@@ -92,12 +92,6 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         this.model.animateTop(openness);
     }
 
-    public void collectVertices(Direction facing, float openness, Set<Vector3f> vertices) {
-        MatrixStack matrixStack = new MatrixStack();
-        this.setTransforms(matrixStack, facing, openness);
-        this.model.getRootPart().collectVertices(matrixStack, vertices);
-    }
-
     @Environment(EnvType.CLIENT)
     private static class ResearchVesselBlockModel extends Model {
         private final ModelPart Top;

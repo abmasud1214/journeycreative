@@ -5,6 +5,7 @@ import mod.journeycreative.blocks.ResearchVesselInventory;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
@@ -30,7 +31,7 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
     protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
     }
 
     @Override
@@ -61,7 +62,7 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
                 x -= 7;
             }
 
-            context.drawText(this.textRenderer, text, x, this.y + 6, Colors.DARK_GRAY, false);
+            context.drawText(this.textRenderer, text, x, this.y + 6, -12566464, false);
         });
     }
     private void renderInvalid(DrawContext context) {
@@ -72,11 +73,11 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
         boolean bl2 = warning != null && !warning.getString().isEmpty();
         if (!(handler.getInventoryCapacity() == 0) && (bl || bl2)) {
             if (bl) {
-                context.drawTexture(RenderPipelines.GUI_TEXTURED, INVALID_RESEARCH_TEXTURE,
+                context.drawTexture(RenderLayer::getGuiTextured, INVALID_RESEARCH_TEXTURE,
                         this.x + 157, this.y + 5, 0, 0,
                         11, 11, 11, 11);
             } else {
-                context.drawTexture(RenderPipelines.GUI_TEXTURED, WARNING_RESEARCH_TEXTURE,
+                context.drawTexture(RenderLayer::getGuiTextured, WARNING_RESEARCH_TEXTURE,
                         this.x + 161, this.y + 5, 0, 0,
                         11, 11, 11, 11);
             }

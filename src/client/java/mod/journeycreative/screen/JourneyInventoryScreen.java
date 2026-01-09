@@ -23,6 +23,7 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.HotbarStorage;
 import net.minecraft.client.option.HotbarStorageEntry;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchProvider;
 import net.minecraft.client.util.InputUtil;
@@ -864,9 +865,8 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-        this.statusEffectsDisplay.drawStatusEffects(context, mouseX, mouseY);
         super.render(context, mouseX, mouseY, deltaTicks);
-        this.statusEffectsDisplay.drawStatusEffectTooltip(context, mouseX, mouseY);
+        this.statusEffectsDisplay.drawStatusEffects(context, mouseX, mouseY, deltaTicks);
         Iterator var5 = ItemGroups.getGroupsToDisplay().iterator();
 
         while (var5.hasNext()) {
@@ -938,9 +938,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
 
         if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, JourneyInventoryScreen.JOURNEY_INVENTORY_TEXTURE, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, JourneyInventoryScreen.JOURNEY_INVENTORY_TEXTURE, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
         } else {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, selectedTab.getTexture(), this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
         }
         this.searchBox.render(context, mouseX, mouseY, deltaTicks);
         int i = this.x + 175;
@@ -948,7 +948,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         int k = j + 112;
         if (selectedTab.hasScrollbar()) {
             Identifier identifier = this.hasScrollbar() ? SCROLLER_TEXTURE : SCROLLER_DISABLED_TEXTURE;
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, identifier, i, j + (int)((float)(k - j - 17) * this.scrollPosition), 12, 15);
+            context.drawGuiTexture(RenderLayer::getGuiTextured, identifier, i, j + (int)((float)(k - j - 17) * this.scrollPosition), 12, 15);
         }
 
         this.renderTabIcon(context, selectedTab);
@@ -1017,7 +1017,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             identifiers = bl ? TAB_BOTTOM_SELECTED_TEXTURES : TAB_BOTTOM_UNSELECTED_TEXTURES;
         }
 
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, identifiers[MathHelper.clamp(i, 0, identifiers.length)], j, k, 26, 32);
+        context.drawGuiTexture(RenderLayer::getGuiTextured, identifiers[MathHelper.clamp(i, 0, identifiers.length)], j, k, 26, 32);
         int l = j + 13 - 8;
         int m = k + 16 - 8 + (bl2 ? 1 : -1);
         context.drawItem(group.getIcon(), l, m);
@@ -1048,7 +1048,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             Text text2 = client.options.loadToolbarActivatorKey.getBoundKeyLocalizedText();
             Text text3 = Text.translatable("inventory.hotbarSaved", new Object[]{text2, text});
             client.inGameHud.setOverlayMessage(text3, false);
-            client.getNarratorManager().narrateSystemImmediately(text3);
+            client.getNarratorManager().narrate(text3);
             hotbarStorage.save();
         }
 
