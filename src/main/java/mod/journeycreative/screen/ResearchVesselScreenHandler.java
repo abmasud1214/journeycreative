@@ -45,6 +45,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
     private final PlayerEntity player;
     private final World world;
     private Text warning;
+    private boolean warningSent = false;
 
     private ItemStack previousTarget;
 
@@ -78,14 +79,21 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         this.capacity = Property.create();
         this.reason = Property.create();
         ItemStack target = this.inventory.getTarget();
-        previousTarget = ItemStack.EMPTY;
-        if (player instanceof ServerPlayerEntity serverPlayerEntity && world instanceof ServerWorld serverWorld) {
-            sendWarningPacket(target, serverWorld, serverPlayerEntity);
-        }
+        previousTarget = target;
         this.addProperty(this.quantity).set(inventory.getQuantity());
         this.addProperty(this.capacity).set(inventory.getCapacity());
         this.addProperty(this.reason).set(0);
         setReason(target);
+    }
+
+    @Override
+    public void sendContentUpdates() {
+        super.sendContentUpdates();
+
+        if (!warningSent && player instanceof ServerPlayerEntity serverPlayerEntity && world instanceof ServerWorld serverWorld) {
+            sendWarningPacket(previousTarget, serverWorld, serverPlayerEntity, true);
+            warningSent = true;
+        }
     }
 
     @Override
@@ -253,8 +261,8 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         return EnderArchiveScreenHandler.researchInvalidReason.values()[this.reason.get()];
     }
 
-    private void sendWarningPacket(ItemStack target, ServerWorld serverWorld, ServerPlayerEntity serverPlayer) {
-        if (!ItemStack.areItemsAndComponentsEqual(target, previousTarget)) {
+    private void sendWarningPacket(ItemStack target, ServerWorld serverWorld, ServerPlayerEntity serverPlayer, boolean init) {
+        if (!ItemStack.areItemsAndComponentsEqual(target, previousTarget) || init) {
             previousTarget = target;
             PlayerUnlocksData playerUnlocksData = StateSaverAndLoader.getPlayerState(player);
             List<Identifier> prerequisites = ResearchConfig.RESEARCH_PREREQUISITES.getOrDefault(
@@ -287,6 +295,10 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
                 );
             }
         }
+    }
+
+    private void sendWarningPacket(ItemStack target, ServerWorld serverWorld, ServerPlayerEntity serverPlayer) {
+        sendWarningPacket(target, serverWorld, serverPlayer, false);
     }
 
     public Text getWarning() {
