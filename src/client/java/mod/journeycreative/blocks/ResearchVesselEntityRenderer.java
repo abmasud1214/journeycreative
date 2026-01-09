@@ -37,7 +37,8 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         this.model = new ResearchVesselBlockModel(models.getModelPart(ModModelLayers.RESEARCH_VESSEL));
     }
 
-    public void render(ResearchVesselBlockEntity researchVesselBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, Vec3d vec3d) {
+    @Override
+    public void render(ResearchVesselBlockEntity researchVesselBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
         Direction direction = Direction.UP;
 
         float g = researchVesselBlockEntity.getAnimationProgress(f);
@@ -102,7 +103,7 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         }
 
         public void animateTop(float openness) {
-            this.Top.setOrigin(0.0F, 24.0F - openness * 11.0F, 0.0F);
+            this.Top.setPivot(0.0F, 24.0F - openness * 11.0F, 0.0F);
         }
     }
 }

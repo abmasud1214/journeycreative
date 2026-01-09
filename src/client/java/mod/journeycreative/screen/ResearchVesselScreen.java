@@ -2,7 +2,6 @@ package mod.journeycreative.screen;
 
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.blocks.ResearchVesselInventory;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.RenderLayer;

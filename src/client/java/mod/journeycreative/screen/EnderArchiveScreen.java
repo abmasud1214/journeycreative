@@ -1,7 +1,6 @@
 package mod.journeycreative.screen;
 
 import mod.journeycreative.Journeycreative;
-import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.CyclingSlotIcon;
 import net.minecraft.client.gui.screen.ingame.ForgingScreen;

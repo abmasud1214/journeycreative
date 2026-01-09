@@ -23,7 +23,7 @@ public class ResearchVesselEntityModel extends EntityModel<ResearchVesselEntityR
         ModelPartData modelPartData = modelData.getRoot();
         ModelPartData Bottom = modelPartData.addChild("Bottom", ModelPartBuilder.create().uv(0, 0).cuboid(-6.0F, -1.0F, -6.0F, 12.0F, 1.0F, 12.0F, new Dilation(0.0F))
                 .uv(0, 32).cuboid(-4.0F, -2.0F, 4.0F, 8.0F, 1.0F, 2.0F, new Dilation(0.0F))
-                .uv(20, 32).cuboid(-4.0F, -2.0F, -6.0F, 8.0F, 1.0F, 2.0F, new Dilation(0.0F)), ModelTransform.origin(0.0F, 24.0F, 0.0F));
+                .uv(20, 32).cuboid(-4.0F, -2.0F, -6.0F, 8.0F, 1.0F, 2.0F, new Dilation(0.0F)), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
 
         ModelPartData cube_r1 = Bottom.addChild("cube_r1", ModelPartBuilder.create().uv(28, 26).cuboid(-6.0F, -1.0F, -1.0F, 12.0F, 1.0F, 2.0F, new Dilation(0.0F)), ModelTransform.of(-5.0F, -1.0F, 0.0F, 0.0F, 1.5708F, 0.0F));
 
@@ -44,7 +44,7 @@ public class ResearchVesselEntityModel extends EntityModel<ResearchVesselEntityR
         super.setAngles(researchVesselEntityRenderState);
 
         float f = (researchVesselEntityRenderState.openProgress * 11.0F) + 5.0F;
-        this.Top.setOrigin(0, f, 0);
+        this.Top.setPivot(0, f, 0);
     }
 
 }

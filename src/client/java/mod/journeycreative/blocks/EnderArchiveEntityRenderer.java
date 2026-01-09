@@ -24,7 +24,8 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
 
     }
 
-    public void render(EnderArchiveBlockEntity enderArchiveBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j, Vec3d vec3d) {
+    @Override
+    public void render(EnderArchiveBlockEntity enderArchiveBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
         Direction direction = (Direction) enderArchiveBlockEntity.getCachedState().get(EnderArchiveBlock.FACING, Direction.NORTH);
 
         float[] g = enderArchiveBlockEntity.getBookTransparency(f);
