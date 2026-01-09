@@ -12,10 +12,18 @@ import org.lwjgl.glfw.GLFW;
 public class ModKeyBindings {
     public static final KeyBinding.Category JOURNEY_CREATIVE = KeyBinding.Category.create(Identifier.of("journeycreative", "main"));
     public static KeyBinding ROTATE_INVENTORY;
+    public static KeyBinding REVERSE_ROTATE_INVENTORY;
 
     public static void register() {
         ROTATE_INVENTORY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.journeycreative.rotate_inventory",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_UNKNOWN,
+                JOURNEY_CREATIVE
+        ));
+
+        REVERSE_ROTATE_INVENTORY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.journeycreative.reverse_rotate_inventory",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_UNKNOWN,
                 JOURNEY_CREATIVE

@@ -20,6 +20,8 @@
   "container.ender_archive.not_enough_items_tooltip": "The research vessel does not have enough items to create a research certificate.",
   "gamerule.researchItemsUnlocked": "JOURNEY: Research Items Already Unlocked",
   "gamerule.researchItemsUnlocked.description": "The items needed to research other items are available in the journey menu without needing to unlock them, enabling instant access to item research without the associated crafting cost.",
+  "key.category.journeycreative.main": "Journey Creative",
   "key.journeycreative.rotate_inventory": "Rotate Inventory Rows",
+  "key.journeycreative.reverse_rotate_inventory": "Rotate Inventory Rows (Reversed)",
   "category.journeycreative": "Journey Creative"
 }
