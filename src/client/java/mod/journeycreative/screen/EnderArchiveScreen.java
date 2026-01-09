@@ -16,9 +16,7 @@ public class EnderArchiveScreen extends ForgingScreen<EnderArchiveScreenHandler>
     private static final Identifier ERROR_TEXTURE = Identifier.ofVanilla("container/smithing/error");
     private final Identifier texture = Identifier.of(Journeycreative.MOD_ID, "textures/gui/ender_archive.png");
     private static final Identifier EMPTY_SLOT_RESEARCH_VESSEL_TEXTURE = Identifier.of(Journeycreative.MOD_ID, "item/empty_slot_research_vessel");
-//    private static final Identifier EMPTY_SLOT_RESEARCH_VESSEL_TEXTURE = Identifier.ofVanilla("container/slot/empty_input");
     private static final Identifier EMPTY_SLOT_RESEARCH_CERTIFICATE_TEXTURE = Identifier.of(Journeycreative.MOD_ID, "item/empty_slot_research_certificate");
-//    private static final Identifier EMPTY_SLOT_RESEARCH_CERTIFICATE_TEXTURE = Identifier.ofVanilla("container/slot/empty_input");
     private final CyclingSlotIcon researchVesselSlotIcon = new CyclingSlotIcon(0);
     private final CyclingSlotIcon researchCertificateSlotIcon = new CyclingSlotIcon(1);
     private static final Text RESEARCH_BLOCKED_TOOLTIP = Text.translatable("container.ender_archive.research_blocked_tooltip");
