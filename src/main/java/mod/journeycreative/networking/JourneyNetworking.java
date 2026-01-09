@@ -293,7 +293,7 @@ public class JourneyNetworking {
         public static final CustomPayload.Id<SyncResearchItemsUnlockRulePayload> ID =
                 new CustomPayload.Id(SYNC_RESEARCH_ITEMS_UNLOCKED_RULE);
         public static final PacketCodec<RegistryByteBuf, SyncResearchItemsUnlockRulePayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.BOOLEAN, SyncResearchItemsUnlockRulePayload::value, SyncResearchItemsUnlockRulePayload::new);
+                PacketCodec.tuple(PacketCodecs.BOOL, SyncResearchItemsUnlockRulePayload::value, SyncResearchItemsUnlockRulePayload::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {
@@ -305,7 +305,7 @@ public class JourneyNetworking {
         public static final CustomPayload.Id<RotateItemsPayload> ID =
                 new CustomPayload.Id(ROTATE_ITEMS);
         public static final PacketCodec<RegistryByteBuf, RotateItemsPayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.BOOLEAN, RotateItemsPayload::reversed, RotateItemsPayload::new);
+                PacketCodec.tuple(PacketCodecs.BOOL, RotateItemsPayload::reversed, RotateItemsPayload::new);
 
         @Override
         public Id<? extends CustomPayload> getId() {

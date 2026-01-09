@@ -4,7 +4,7 @@ import mod.journeycreative.Journeycreative;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.model.LoadedEntityModels;
+import net.minecraft.client.render.entity.model.EntityModelLoader;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
@@ -17,10 +17,10 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
     private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/ender_archive.png");
 
     public EnderArchiveEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-        this(ctx.getLoadedEntityModels());
+        this(ctx.getLayerRenderDispatcher());
     }
 
-    public EnderArchiveEntityRenderer(LoadedEntityModels models) {
+    public EnderArchiveEntityRenderer(EntityModelLoader loader) {
 
     }
 

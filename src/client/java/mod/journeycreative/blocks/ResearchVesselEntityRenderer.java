@@ -11,7 +11,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.model.LoadedEntityModels;
+import net.minecraft.client.render.entity.model.EntityModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
@@ -30,11 +30,11 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
     private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/research_vessel.png");
 
     public ResearchVesselEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-        this(ctx.getLoadedEntityModels());
+        this(ctx.getLayerRenderDispatcher());
     }
 
-    public ResearchVesselEntityRenderer(LoadedEntityModels models) {
-        this.model = new ResearchVesselBlockModel(models.getModelPart(ModModelLayers.RESEARCH_VESSEL));
+    public ResearchVesselEntityRenderer(EntityModelLoader loader) {
+        this.model = new ResearchVesselBlockModel(loader.getModelPart(ModModelLayers.RESEARCH_VESSEL));
     }
 
     @Override

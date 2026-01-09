@@ -2,6 +2,7 @@ package mod.journeycreative.screen;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Pair;
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.networking.PlayerClientUnlocksData;
 import mod.journeycreative.networking.JourneyClientNetworking;
@@ -41,6 +42,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.ScreenTexts;
@@ -1289,7 +1291,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
 
         @Nullable
-        public Identifier getBackgroundSprite() {
+        public Pair<Identifier, Identifier> getBackgroundSprite() {
             return this.slot.getBackgroundSprite();
         }
 
