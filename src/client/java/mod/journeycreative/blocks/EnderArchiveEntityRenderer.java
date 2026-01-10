@@ -1,8 +1,6 @@
 package mod.journeycreative.blocks;
 
 import mod.journeycreative.Journeycreative;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
@@ -24,7 +22,6 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
     private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/ender_archive.png");
 
     public EnderArchiveEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-//        this(ctx.getLoadedEntityModels());
         this(ctx.loadedEntityModels());
     }
 
@@ -69,7 +66,6 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
 
         queue.submitCustom(
                 matrices,
-//                RenderLayer.getEntityTranslucent(TEXTURE),
                 RenderLayers.entityTranslucent(TEXTURE),
                 (entry, consumer) -> {
                     Vec3i normalVec = state.facing.getVector();
@@ -91,7 +87,6 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
 
         queue.submitCustom(
                 matrices,
-//                RenderLayer.getEndPortal(),
                 RenderLayers.endPortal(),
                 (entry, consumer) -> {
                     Matrix4f model = entry.getPositionMatrix();

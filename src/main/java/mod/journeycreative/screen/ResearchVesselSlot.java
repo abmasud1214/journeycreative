@@ -4,7 +4,6 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.screen.slot.Slot;
 
 public class ResearchVesselSlot extends Slot {

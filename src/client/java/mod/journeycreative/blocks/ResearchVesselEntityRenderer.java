@@ -11,20 +11,13 @@ import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.state.BlockEntityRenderState;
 import net.minecraft.client.render.command.ModelCommandRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.model.LoadedEntityModels;
 import net.minecraft.client.render.state.CameraRenderState;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-
-import java.util.Objects;
-import java.util.Set;
 
 @Environment(EnvType.CLIENT)
 public class ResearchVesselEntityRenderer implements BlockEntityRenderer<ResearchVesselBlockEntity, ResearchVesselEntityRenderer.ResearchVesselRenderState> {
@@ -57,7 +50,6 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
                 this.model,
                 state.openness,
                 matrices,
-//                RenderLayer.getEntityCutoutNoCull(TEXTURE),
                 RenderLayers.entityCutoutNoCull(TEXTURE),
                 state.lightmapCoordinates,
                 OverlayTexture.DEFAULT_UV,
@@ -67,7 +59,6 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         matrices.pop();
         queue.submitCustom(
                 matrices,
-//                RenderLayer.getEndPortal(),
                 RenderLayers.endPortal(),
                 ((matricesEntry, vertexConsumer) -> {
                     renderSides(

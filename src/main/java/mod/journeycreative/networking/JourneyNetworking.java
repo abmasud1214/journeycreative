@@ -1,11 +1,8 @@
 package mod.journeycreative.networking;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.logging.LogUtils;
-import io.netty.buffer.ByteBuf;
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.screen.TrashcanInventory;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -14,21 +11,13 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.command.argument.RegistryKeyArgumentType;
-import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -37,7 +26,6 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Cooldown;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Unit;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -52,12 +40,8 @@ public class JourneyNetworking {
     public static final Identifier ROTATE_ITEMS = Identifier.of(Journeycreative.MOD_ID, "rotate_items");
     public static final Identifier SEND_ITEM_WARNING_MESSAGE = Identifier.of(Journeycreative.MOD_ID, "send_item_warning_message");
 
-    public static final Identifier INITIAL_SYNC = Identifier.of(Journeycreative.MOD_ID, "initial_sync");
     static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<UUID, Cooldown> playerCreativeItemDropCooldowns = new HashMap<>();
-
-    private static final DynamicCommandExceptionType INVALID_ITEM_EXCEPTION =
-            new DynamicCommandExceptionType(id -> Text.literal("Unknown item: " + id));
 
     public static void registerClientPackets() {
         PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncUnlockedItemsPayload.ID, JourneyNetworking.SyncUnlockedItemsPayload.CODEC);
@@ -132,15 +116,10 @@ public class JourneyNetworking {
             int slot = payload.slot();
             var stack = payload.stack();
             boolean bl = slot < 0;
-            //TODO: return here if item is not unlocked
-
             boolean bl2 = slot >= 1 && slot <= 45;
             boolean bl3 = stack.isEmpty() || stack.getCount() <= stack.getMaxCount();
 
             context.server().execute(() -> {
-//               JourneyUnlocks unlocks = ((JourneyPlayerAccess) player).getJourneyUnlocks();
-//               if (unlocks.isUnlocked(stack.getItem())) {
-//               }
                 UUID uuid = player.getUuid();
                 playerCreativeItemDropCooldowns.putIfAbsent(uuid, new Cooldown(20, 1480));
                 Cooldown cooldown = playerCreativeItemDropCooldowns.get(uuid);
@@ -170,8 +149,6 @@ public class JourneyNetworking {
             var item = payload.stack();
 
             context.server().execute(() -> {
-//                StateSaverAndLoader serverState = StateSaverAndLoader.getServerState(server);
-
                 PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
                 boolean r = playerState.unlockItem(item);
 
@@ -250,7 +227,6 @@ public class JourneyNetworking {
     }
 
     public static void syncResearchItemsUnlocked(ServerPlayerEntity player) {
-//        boolean value = player.getEntityWorld().getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
         boolean value = player
                 .getEntityWorld()
                         .getGameRules()
