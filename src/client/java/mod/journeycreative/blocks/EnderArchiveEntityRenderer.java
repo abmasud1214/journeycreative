@@ -1,6 +1,7 @@
 package mod.journeycreative.blocks;
 
 import mod.journeycreative.Journeycreative;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
@@ -26,7 +27,11 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
 
     @Override
     public void render(EnderArchiveBlockEntity enderArchiveBlockEntity, float f, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, int j) {
-        Direction direction = (Direction) enderArchiveBlockEntity.getCachedState().get(EnderArchiveBlock.FACING, Direction.NORTH);
+        BlockState state = enderArchiveBlockEntity.getCachedState();
+        Direction direction = Direction.NORTH;
+        if (state.contains(EnderArchiveBlock.FACING)) {
+            direction = (Direction) enderArchiveBlockEntity.getCachedState().get(EnderArchiveBlock.FACING);
+        }
 
         float[] g = enderArchiveBlockEntity.getBookTransparency(f);
         this.render(matrixStack, vertexConsumerProvider, i, j, direction, g);
