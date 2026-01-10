@@ -2,7 +2,6 @@ package mod.journeycreative.items;
 
 import mod.journeycreative.ResearchConfig;
 import net.minecraft.block.Block;
-import net.minecraft.component.ComponentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.BlockItem;

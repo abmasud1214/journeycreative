@@ -3,8 +3,8 @@ package mod.journeycreative.screen;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import mod.journeycreative.Journeycreative;
-import mod.journeycreative.networking.PlayerClientUnlocksData;
 import mod.journeycreative.networking.JourneyClientNetworking;
+import mod.journeycreative.networking.PlayerClientUnlocksData;
 import mod.journeycreative.networking.TrashcanServerStorage;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -12,10 +12,11 @@ import net.fabricmc.fabric.api.client.itemgroup.v1.FabricCreativeInventoryScreen
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-
 import net.minecraft.client.gui.ScreenPos;
 import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.ingame.*;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.gui.screen.ingame.StatusEffectsDisplay;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -173,9 +174,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             ClientPlayerEntity clientPlayerEntity = this.client.player;
             if (clientPlayerEntity != null) {
                 this.updateDisplayParameters(clientPlayerEntity.networkHandler.getEnabledFeatures(), this.shouldShowOperatorTab(clientPlayerEntity), clientPlayerEntity.getWorld().getRegistryManager());
-//                if (!clientPlayerEntity.isInCreativeMode()) {
-//                    this.client.setScreen(new InventoryScreen(clientPlayerEntity));
-//                }
             }
         }
     }
@@ -218,7 +216,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                     ItemStack tcStack = this.deleteItemSlot.getStack();
                     boolean ret = this.handler.insertItem(tcStack, 9, 46, false);
                     if(ret) {
-//                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
                         for (int k = 9; k < 45; ++k) {
                             Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
                             JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
@@ -232,23 +229,14 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                             ItemStack cursorStack = this.handler.getCursorStack().copy();
                             if (cursorStack.isEmpty() && this.deleteItemSlot.hasStack()) {
                                 itemStack2 = this.deleteItemSlot.getStack();
-//                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
                                 ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2);
                                 JourneyClientNetworking.sendTrashcanUpdate(ItemStack.EMPTY);
-//                                pickupSlot = deleteItemSlot;
                             } else {
-//                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
-//                                this.deleteItemSlot.setStack(((JourneyScreenHandler) this.handler).getCursorStack());
                                 JourneyClientNetworking.sendTrashcanUpdate(cursorStack);
-//                                if (pickupSlot != null && pickupSlot != deleteItemSlot) {
-////                                    JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) pickupSlot).slot.id);
-//                                }
                                 ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
                             }
                         } else if (bl && slot != null && slot.hasStack()) { // shift click slot.
                             itemStack2 = slot.getStack();
-//                            this.deleteItemSlot.setStack(ItemStack.EMPTY);
-//                            this.deleteItemSlot.setStack(itemStack2);
                             JourneyClientNetworking.sendTrashcanUpdate(itemStack2);
                             slot.setStack(ItemStack.EMPTY);
                             JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) slot).slot.id);
@@ -263,21 +251,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                             JourneyClientNetworking.dropJourneyStack(((JourneyScreenHandler) this.handler).getCursorStack(), this.client.player);
                             ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
                         } else {
-//                            ItemStack previousItemStack = slot == null ? ItemStack.EMPTY : slot.getStack().copy();
-//                            ItemStack previousCursorStack = this.handler.getCursorStack().copy();
                             this.client.player.playerScreenHandler.onSlotClick(slot == null ? slotId : ((JourneySlot) slot).slot.id, button, actionType, this.client.player);
-//                            ItemStack afterItemStack = slot == null ? ItemStack.EMPTY : slot.getStack();
-//                            if (slot != null && !previousItemStack.isEmpty() && afterItemStack.isEmpty()) {
-//                                pickupSlot = slot;
-//                            }
-//                            if (pickupSlot == deleteItemSlot) {
-//                                if (ScreenHandler.unpackQuickCraftStage(button) == 2) {
-//
-//                                } else if (!previousCursorStack.isEmpty() && this.handler.getCursorStack().isEmpty()) {
-//                                    JourneyClientNetworking.clickJourneyStack(slot.getStack(), ((JourneySlot) slot).slot.id);
-//                                }
-//                            }
-
                         }
                         for (int k = 9; k < 45; ++k) {
                             Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
@@ -352,7 +326,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                                 }
 
                                 this.client.player.playerScreenHandler.sendContentUpdates();
-//                                JourneyClientNetworking.clickJourneyStack(slot.inventory.getStack(slot.getIndex()), slot.getIndex());
                             }
                         }
                     }
@@ -696,7 +669,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private Collection<ItemStack> filterUnlockedItems(Collection<ItemStack> unfilteredItems) {
         Collection<ItemStack> filtered = ItemStackSet.create();
         for (ItemStack itemStack : unfilteredItems) {
-//            Item i = itemStack.getItem();
             if (PlayerClientUnlocksData.isUnlocked(itemStack)) {
                 filtered.add(itemStack);
             }
@@ -716,30 +688,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         this.endTouchDrag();
         int i;
         int j;
-        if (selectedTab.getType() == ItemGroup.Type.HOTBAR) {
-            //TODO: check if creative hotbar makes sense.
-            HotbarStorage hotbarStorage = this.client.getCreativeHotbarStorage();
-
-            for(i = 0; i < 9; ++i) {
-                HotbarStorageEntry hotbarStorageEntry = hotbarStorage.getSavedHotbar(i);
-                if (hotbarStorageEntry.isEmpty()) {
-                    for(j = 0; j < 9; ++j) {
-                        if (j == i) {
-                            ItemStack itemStack = new ItemStack(Items.PAPER);
-                            itemStack.set(DataComponentTypes.CREATIVE_SLOT_LOCK, Unit.INSTANCE);
-                            Text text = this.client.options.hotbarKeys[i].getBoundKeyLocalizedText();
-                            Text text2 = this.client.options.saveToolbarActivatorKey.getBoundKeyLocalizedText();
-                            itemStack.set(DataComponentTypes.ITEM_NAME, Text.translatable("inventory.hotbarInfo", new Object[]{text2, text}));
-                            ((JourneyScreenHandler) this.handler).itemList.add(itemStack);
-                        } else {
-                            ((JourneyScreenHandler) this.handler).itemList.add(ItemStack.EMPTY);
-                        }
-                    }
-                } else {
-                    ((JourneyScreenHandler) this.handler).itemList.addAll(hotbarStorageEntry.deserialize(this.client.world.getRegistryManager()));
-                }
-            }
-        } else if (selectedTab.getType() == ItemGroup.Type.CATEGORY) {
+        if (selectedTab.getType() == ItemGroup.Type.CATEGORY) {
             Collection<ItemStack> filteredItems = filterUnlockedItems(selectedTab.getDisplayStacks());
             ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
         }
