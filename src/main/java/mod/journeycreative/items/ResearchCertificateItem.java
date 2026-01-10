@@ -130,6 +130,7 @@ public class ResearchCertificateItem extends Item {
                 player.getItemCooldownManager().set(this, 10);
             } else {
                 player.sendMessage(Text.translatable("item.journeycreative.research_certificate.already_unlocked", getItemName(research_target)), true);
+                player.getItemCooldownManager().set(this, 10);
             }
         }
         return stack;
