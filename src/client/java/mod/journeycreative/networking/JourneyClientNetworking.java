@@ -27,7 +27,6 @@ public class JourneyClientNetworking {
     public static void dropJourneyStack(ItemStack stack, ClientPlayerEntity player) {
         if (!stack.isEmpty()) {
             sendGiveItem(-1, stack);
-            player.getItemDropCooldown().increment();
         }
     }
 
