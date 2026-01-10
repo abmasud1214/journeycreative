@@ -78,9 +78,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private static final int TAB_HEIGHT = 32;
     private static final int SCROLLBAR_WIDTH = 12;
     private static final int SCROLLBAR_HEIGHT = 15;
-    static final SimpleInventory INVENTORY = new SimpleInventory(45);
+    private SimpleInventory INVENTORY;
     private static final Text DELETE_ITEM_SLOT_TEXT = Text.translatable("inventory.binSlot");
-    private static ItemGroup selectedTab = ItemGroups.getDefaultTab();
+    static ItemGroup selectedTab = ItemGroups.getDefaultTab();
     private static int currentPage = 0;
     private float scrollPosition;
     private boolean scrolling;
@@ -103,6 +103,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         this.backgroundHeight = 136;
         this.backgroundWidth = 195;
         this.operatorTabEnabled = operatorTabEnabled;
+        INVENTORY = this.handler.INVENTORY;
     }
 
     private boolean shouldShowOperatorTab(PlayerEntity player) {
@@ -210,7 +211,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
             if (slot == this.deleteItemSlot && bl && this.deleteItemSlot.hasStack()) { // shift click delete item slot
                 ItemStack tcStack = this.deleteItemSlot.getStack();
-                boolean ret = this.handler.insertItem(tcStack, 9, 46, false);
+                boolean ret = this.handler.insertItemTrashcan(tcStack, 9, 46, false);
                 if(ret) {
 //                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
                     for (int k = 9; k < 45; ++k) {
@@ -667,7 +668,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         for (ItemStack itemStack : unfilteredItems) {
 //            Item i = itemStack.getItem();
             if (PlayerClientUnlocksData.isUnlocked(itemStack)) {
-                filtered.add(itemStack);
+                filtered.add(itemStack.copy());
             }
         }
 
@@ -685,30 +686,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         this.endTouchDrag();
         int i;
         int j;
-        if (selectedTab.getType() == ItemGroup.Type.HOTBAR) {
-            //TODO: check if creative hotbar makes sense.
-            HotbarStorage hotbarStorage = this.client.getCreativeHotbarStorage();
-
-            for(i = 0; i < 9; ++i) {
-                HotbarStorageEntry hotbarStorageEntry = hotbarStorage.getSavedHotbar(i);
-                if (hotbarStorageEntry.isEmpty()) {
-                    for(j = 0; j < 9; ++j) {
-                        if (j == i) {
-                            ItemStack itemStack = new ItemStack(Items.PAPER);
-                            itemStack.set(DataComponentTypes.CREATIVE_SLOT_LOCK, Unit.INSTANCE);
-                            Text text = this.client.options.hotbarKeys[i].getBoundKeyLocalizedText();
-                            Text text2 = this.client.options.saveToolbarActivatorKey.getBoundKeyLocalizedText();
-                            itemStack.set(DataComponentTypes.ITEM_NAME, Text.translatable("inventory.hotbarInfo", new Object[]{text2, text}));
-                            ((JourneyScreenHandler) this.handler).itemList.add(itemStack);
-                        } else {
-                            ((JourneyScreenHandler) this.handler).itemList.add(ItemStack.EMPTY);
-                        }
-                    }
-                } else {
-                    ((JourneyScreenHandler) this.handler).itemList.addAll(hotbarStorageEntry.deserialize(this.client.world.getRegistryManager()));
-                }
-            }
-        } else if (selectedTab.getType() == ItemGroup.Type.CATEGORY) {
+        if (selectedTab.getType() == ItemGroup.Type.CATEGORY) {
             Collection<ItemStack> filteredItems = filterUnlockedItems(selectedTab.getDisplayStacks());
             ((JourneyScreenHandler) this.handler).itemList.addAll(filteredItems);
         }
@@ -1028,15 +1006,17 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         public final DefaultedList<ItemStack> itemList = DefaultedList.of();
         private final ScreenHandler parent;
         private TrashcanInventory trashcanInventory;
+        private SimpleInventory INVENTORY;
 
         public JourneyScreenHandler(PlayerEntity player) {
             super((ScreenHandlerType) null, 0);
             this.parent = player.playerScreenHandler;
             PlayerInventory playerInventory = player.getInventory();
+            INVENTORY = new SimpleInventory(45);
 
             for(int i = 0; i < 5; ++i) {
                 for(int j = 0; j < 9; ++j) {
-                    this.addSlot(new JourneyInventoryScreen.LockableSlot(JourneyInventoryScreen.INVENTORY, i * 9 + j, 9 + j * 18, 18 + i * 18));
+                    this.addSlot(new JourneyInventoryScreen.LockableSlot(INVENTORY, i * 9 + j, 9 + j * 18, 18 + i * 18));
                 }
             }
 
@@ -1072,9 +1052,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 for(int k = 0; k < 9; ++k) {
                     int l = k + (j + i) * 9;
                     if (l >= 0 && l < this.itemList.size()) {
-                        JourneyInventoryScreen.INVENTORY.setStack(k + j * 9, (ItemStack)this.itemList.get(l));
+                        INVENTORY.setStack(k + j * 9, (ItemStack)this.itemList.get(l).copy());
                     } else {
-                        JourneyInventoryScreen.INVENTORY.setStack(k + j * 9, ItemStack.EMPTY);
+                        INVENTORY.setStack(k + j * 9, ItemStack.EMPTY);
                     }
                 }
             }
@@ -1096,11 +1076,11 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
 
         public boolean canInsertIntoSlot(ItemStack stack, Slot slot) {
-            return slot.inventory != JourneyInventoryScreen.INVENTORY;
+            return slot.inventory != this.INVENTORY;
         }
 
         public boolean canInsertIntoSlot(Slot slot) {
-            return slot.inventory != JourneyInventoryScreen.INVENTORY;
+            return slot.inventory != this.INVENTORY;
         }
 
         public ItemStack getCursorStack() {
@@ -1111,7 +1091,16 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             this.parent.setCursorStack(stack);
         }
 
-        protected boolean insertItem(ItemStack stack, int startIndex, int endIndex, boolean fromLast) {
+        @Override
+        public void setStackInSlot(int slot, int revision, ItemStack stack) {
+            if (slot < 45 && JourneyInventoryScreen.selectedTab.getType() != ItemGroup.Type.INVENTORY) {
+                this.parent.setStackInSlot(slot, revision, stack);
+                return;
+            }
+            super.setStackInSlot(slot, revision, stack);
+        }
+
+        protected boolean insertItemTrashcan(ItemStack stack, int startIndex, int endIndex, boolean fromLast) {
             boolean bl = false;
             int i = startIndex;
             if (fromLast) {
