@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import mod.journeycreative.Journeycreative;
-import mod.journeycreative.networking.PlayerClientUnlocksData;
 import mod.journeycreative.networking.JourneyClientNetworking;
+import mod.journeycreative.networking.PlayerClientUnlocksData;
 import mod.journeycreative.networking.TrashcanServerStorage;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -13,17 +13,16 @@ import net.fabricmc.fabric.api.client.itemgroup.v1.FabricCreativeInventoryScreen
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-
 import net.minecraft.client.gui.ScreenPos;
 import net.minecraft.client.gui.screen.ButtonTextures;
-import net.minecraft.client.gui.screen.ingame.*;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.HotbarStorage;
 import net.minecraft.client.option.HotbarStorageEntry;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchProvider;
 import net.minecraft.client.util.InputUtil;
@@ -39,10 +38,8 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.ScreenTexts;
@@ -51,7 +48,6 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Unit;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
@@ -174,9 +170,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             ClientPlayerEntity clientPlayerEntity = this.client.player;
             if (clientPlayerEntity != null) {
                 this.updateDisplayParameters(clientPlayerEntity.networkHandler.getEnabledFeatures(), this.shouldShowOperatorTab(clientPlayerEntity), clientPlayerEntity.getWorld().getRegistryManager());
-//                if (!clientPlayerEntity.isInCreativeMode()) {
-//                    this.client.setScreen(new InventoryScreen(clientPlayerEntity));
-//                }
             }
         }
     }
@@ -213,7 +206,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 ItemStack tcStack = this.deleteItemSlot.getStack();
                 boolean ret = this.handler.insertItemTrashcan(tcStack, 9, 46, false);
                 if(ret) {
-//                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
                     for (int k = 9; k < 45; ++k) {
                         Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
                         JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
@@ -666,7 +658,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private Collection<ItemStack> filterUnlockedItems(Collection<ItemStack> unfilteredItems) {
         Collection<ItemStack> filtered = ItemStackSet.create();
         for (ItemStack itemStack : unfilteredItems) {
-//            Item i = itemStack.getItem();
             if (PlayerClientUnlocksData.isUnlocked(itemStack)) {
                 filtered.add(itemStack.copy());
             }
@@ -812,7 +803,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
-//        this.statusEffectsDisplay.drawStatusEffects(context, mouseX, mouseY, deltaTicks);
         Iterator var5 = ItemGroups.getGroupsToDisplay().iterator();
 
 

@@ -4,7 +4,6 @@ import mod.journeycreative.keybinds.KeyInputHandler;
 import mod.journeycreative.screen.JourneyInventoryScreen;
 import mod.journeycreative.screen.ResearchVesselScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -13,11 +12,7 @@ import net.minecraft.screen.ScreenHandler;
 
 public class JourneyClientNetworking {
     public static void sendGiveItem(int slot, ItemStack stack) {
-//        if (PlayerClientUnlocksData.isUnlocked(stack)) {
-            ClientPlayNetworking.send(new JourneyNetworking.GiveItemPayload(slot, stack.copy()));
-//        } else {
-//            return;
-//        }
+        ClientPlayNetworking.send(new JourneyNetworking.GiveItemPayload(slot, stack.copy()));
     }
 
     public static void clickJourneyStack(ItemStack stack, int slot) {

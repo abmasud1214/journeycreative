@@ -1,16 +1,11 @@
 package mod.journeycreative;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import mod.journeycreative.blocks.ModBlocks;
 import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.items.ModItems;
-import mod.journeycreative.items.ResearchCertificateItem;
 import mod.journeycreative.networking.JourneyNetworking;
 import mod.journeycreative.screen.ModScreens;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;

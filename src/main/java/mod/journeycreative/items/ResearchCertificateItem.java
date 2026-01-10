@@ -11,16 +11,14 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.util.*;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -46,9 +44,7 @@ public class ResearchCertificateItem extends Item {
 
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         boolean exists = stack.contains(ModComponents.RESEARCH_ITEM_COMPONENT);
-//        boolean exists = true;
         if (exists) {
-//            RegistryKey<Item> research_item = stack.getOrDefault(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "diamond")));
             ItemStack research_item = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
             tooltip.add(Text.translatable("item.journeycreative.research_certificate.research_item", getItemName(research_item)).formatted(Formatting.GOLD));
         }
@@ -91,7 +87,6 @@ public class ResearchCertificateItem extends Item {
         if (world instanceof ServerWorld serverWorld && user instanceof PlayerEntity player && exists) {
             PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
             ItemStack research_target = stack.get(ModComponents.RESEARCH_ITEM_COMPONENT);
-//            RegistryKey<Item> research_target = stack.getOrDefault(ModComponents.RESEARCH_ITEM_COMPONENT, RegistryKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "diamond")));
 
             Set<Identifier> prohibited = ResearchConfig.RESEARCH_PROHIBITED;
             if (prohibited.contains(Registries.ITEM.getId(research_target.getItem()))) {
