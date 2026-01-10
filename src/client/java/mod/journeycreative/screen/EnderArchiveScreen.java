@@ -36,7 +36,7 @@ public class EnderArchiveScreen extends ForgingScreen<EnderArchiveScreenHandler>
 
     @Override
     protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
-        context.drawTexture(RenderLayer::getGuiTextured, this.texture, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+        context.drawTexture(this.texture, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
         this.researchCertificateSlotIcon.render(this.handler, context, deltaTicks, this.x, this.y);
         this.researchVesselSlotIcon.render(this.handler, context, deltaTicks, this.x, this.y);
         this.drawInvalidRecipeArrow(context, this.x, this.y);
@@ -51,7 +51,7 @@ public class EnderArchiveScreen extends ForgingScreen<EnderArchiveScreenHandler>
     @Override
     protected void drawInvalidRecipeArrow(DrawContext context, int x, int y) {
         if (this.getScreenHandler().hasInvalidRecipe()) {
-            context.drawGuiTexture(RenderLayer::getGuiTextured, ERROR_TEXTURE, this.x + 74,this.y + 31, 28, 21);
+            context.drawGuiTexture(ERROR_TEXTURE, this.x + 74,this.y + 31, 28, 21);
         }
     }
 

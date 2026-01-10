@@ -95,7 +95,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     private boolean lastClickOutsideBounds;
     private final Set<TagKey<Item>> searchResultTags = new HashSet();
     private final boolean operatorTabEnabled;
-    private final StatusEffectsDisplay statusEffectsDisplay;
     private final Map<ItemGroup, Integer> itemGroupPage = new HashMap();
 
     public JourneyInventoryScreen(ClientPlayerEntity player, FeatureSet enabledFeatures, boolean operatorTabEnabled) {
@@ -104,7 +103,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         this.backgroundHeight = 136;
         this.backgroundWidth = 195;
         this.operatorTabEnabled = operatorTabEnabled;
-        this.statusEffectsDisplay = new StatusEffectsDisplay(this);
     }
 
     private boolean shouldShowOperatorTab(PlayerEntity player) {
@@ -190,172 +188,141 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
         boolean bl = actionType == SlotActionType.QUICK_MOVE;
         actionType = slotId == -999 && actionType == SlotActionType.PICKUP ? SlotActionType.THROW : actionType; // If pickup action, then throw
-        if (actionType != SlotActionType.THROW || this.client.player.canDropItems()) { // if not throw, or throw not on cooldown
-            this.onMouseClick(slot, actionType);
-            ItemStack itemStack;
-            if (slot == null && selectedTab.getType() != ItemGroup.Type.INVENTORY && actionType != SlotActionType.QUICK_CRAFT) { // click outside inventory
-                if (!((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && this.lastClickOutsideBounds) {
-                    if (!this.client.player.canDropItems()) {
-                        return;
-                    }
+        ItemStack itemStack;
+        if (slot == null && selectedTab.getType() != ItemGroup.Type.INVENTORY && actionType != SlotActionType.QUICK_CRAFT) { // click outside inventory
+            if (!((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && this.lastClickOutsideBounds) {
+                if (button == 0) {
+                    this.client.player.dropItem(((JourneyScreenHandler) this.handler).getCursorStack(), true);
+                    JourneyClientNetworking.dropJourneyStack(((JourneyScreenHandler) this.handler).getCursorStack(), this.client.player);
+                    ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
+                }
 
-                    if (button == 0) {
+                if (button == 1) {
+                    itemStack = ((JourneyScreenHandler) this.handler).getCursorStack().split(1);
+                    this.client.player.dropItem(itemStack, true);
+                    JourneyClientNetworking.dropJourneyStack(itemStack, this.client.player);
+                }
+            }
+        } else {
+            if (slot != null && !slot.canTakeItems(this.client.player)) {
+                return;
+            }
+
+            if (slot == this.deleteItemSlot && bl && this.deleteItemSlot.hasStack()) { // shift click delete item slot
+                ItemStack tcStack = this.deleteItemSlot.getStack();
+                boolean ret = this.handler.insertItem(tcStack, 9, 46, false);
+                if(ret) {
+//                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
+                    for (int k = 9; k < 45; ++k) {
+                        Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
+                        JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
+                    }
+                    JourneyClientNetworking.sendTrashcanUpdate(tcStack);
+                }
+            } else {
+                ItemStack itemStack2;
+                if (selectedTab.getType() == ItemGroup.Type.INVENTORY) { // player inventory visible
+                    if (slot == this.deleteItemSlot) { // click delete item slot
+                        ItemStack cursorStack = this.handler.getCursorStack().copy();
+                        if (cursorStack.isEmpty() && this.deleteItemSlot.hasStack()) {
+                            itemStack2 = this.deleteItemSlot.getStack();
+                            ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2);
+                            JourneyClientNetworking.sendTrashcanUpdate(ItemStack.EMPTY);
+                        } else {
+                            JourneyClientNetworking.sendTrashcanUpdate(cursorStack);
+                            ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
+                        }
+                    } else if (bl && slot != null && slot.hasStack()) { // shift click slot.
+                        itemStack2 = slot.getStack();
+                        JourneyClientNetworking.sendTrashcanUpdate(itemStack2);
+                        slot.setStack(ItemStack.EMPTY);
+                        JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) slot).slot.id);
+                    } else if (actionType == SlotActionType.THROW && slot != null && slot.hasStack()) {
+                        itemStack = slot.takeStack(button == 0 ? 1 : slot.getStack().getMaxCount());
+                        itemStack2 = slot.getStack();
+                        this.client.player.dropItem(itemStack, true);
+                        JourneyClientNetworking.dropJourneyStack(itemStack, this.client.player);
+                        JourneyClientNetworking.clickJourneyStack(itemStack2, ((JourneySlot) slot).slot.id);
+                    } else if (actionType == SlotActionType.THROW && slotId == -999 && !((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
                         this.client.player.dropItem(((JourneyScreenHandler) this.handler).getCursorStack(), true);
                         JourneyClientNetworking.dropJourneyStack(((JourneyScreenHandler) this.handler).getCursorStack(), this.client.player);
                         ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
+                    } else {
+                        this.client.player.playerScreenHandler.onSlotClick(slot == null ? slotId : ((JourneySlot) slot).slot.id, button, actionType, this.client.player);
                     }
-
-                    if (button == 1) {
-                        itemStack = ((JourneyScreenHandler) this.handler).getCursorStack().split(1);
-                        this.client.player.dropItem(itemStack, true);
-                        JourneyClientNetworking.dropJourneyStack(itemStack, this.client.player);
-                    }
-                }
-            } else {
-                if (slot != null && !slot.canTakeItems(this.client.player)) {
-                    return;
-                }
-
-                if (slot == this.deleteItemSlot && bl && this.deleteItemSlot.hasStack()) { // shift click delete item slot
-                    ItemStack tcStack = this.deleteItemSlot.getStack();
-                    boolean ret = this.handler.insertItem(tcStack, 9, 46, false);
-                    if(ret) {
-//                        this.deleteItemSlot.setStack(ItemStack.EMPTY);
-                        for (int k = 9; k < 45; ++k) {
-                            Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
-                            JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
-                        }
-                        JourneyClientNetworking.sendTrashcanUpdate(tcStack);
+                    for (int k = 9; k < 45; ++k) {
+                        Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
+                        JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
                     }
                 } else {
-                    ItemStack itemStack2;
-                    if (selectedTab.getType() == ItemGroup.Type.INVENTORY) { // player inventory visible
-                        if (slot == this.deleteItemSlot) { // click delete item slot
-                            ItemStack cursorStack = this.handler.getCursorStack().copy();
-                            if (cursorStack.isEmpty() && this.deleteItemSlot.hasStack()) {
-                                itemStack2 = this.deleteItemSlot.getStack();
-//                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
-                                ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2);
-                                JourneyClientNetworking.sendTrashcanUpdate(ItemStack.EMPTY);
-//                                pickupSlot = deleteItemSlot;
-                            } else {
-//                                this.deleteItemSlot.setStack(ItemStack.EMPTY);
-//                                this.deleteItemSlot.setStack(((JourneyScreenHandler) this.handler).getCursorStack());
-                                JourneyClientNetworking.sendTrashcanUpdate(cursorStack);
-//                                if (pickupSlot != null && pickupSlot != deleteItemSlot) {
-////                                    JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) pickupSlot).slot.id);
-//                                }
-                                ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
-                            }
-                        } else if (bl && slot != null && slot.hasStack()) { // shift click slot.
-                            itemStack2 = slot.getStack();
-//                            this.deleteItemSlot.setStack(ItemStack.EMPTY);
-//                            this.deleteItemSlot.setStack(itemStack2);
-                            JourneyClientNetworking.sendTrashcanUpdate(itemStack2);
-                            slot.setStack(ItemStack.EMPTY);
-                            JourneyClientNetworking.clickJourneyStack(ItemStack.EMPTY, ((JourneySlot) slot).slot.id);
-                        } else if (actionType == SlotActionType.THROW && slot != null && slot.hasStack()) {
-                            itemStack = slot.takeStack(button == 0 ? 1 : slot.getStack().getMaxCount());
-                            itemStack2 = slot.getStack();
-                            this.client.player.dropItem(itemStack, true);
-                            JourneyClientNetworking.dropJourneyStack(itemStack, this.client.player);
-                            JourneyClientNetworking.clickJourneyStack(itemStack2, ((JourneySlot) slot).slot.id);
-                        } else if (actionType == SlotActionType.THROW && slotId == -999 && !((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
-                            this.client.player.dropItem(((JourneyScreenHandler) this.handler).getCursorStack(), true);
-                            JourneyClientNetworking.dropJourneyStack(((JourneyScreenHandler) this.handler).getCursorStack(), this.client.player);
-                            ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
-                        } else {
-//                            ItemStack previousItemStack = slot == null ? ItemStack.EMPTY : slot.getStack().copy();
-//                            ItemStack previousCursorStack = this.handler.getCursorStack().copy();
-                            this.client.player.playerScreenHandler.onSlotClick(slot == null ? slotId : ((JourneySlot) slot).slot.id, button, actionType, this.client.player);
-//                            ItemStack afterItemStack = slot == null ? ItemStack.EMPTY : slot.getStack();
-//                            if (slot != null && !previousItemStack.isEmpty() && afterItemStack.isEmpty()) {
-//                                pickupSlot = slot;
-//                            }
-//                            if (pickupSlot == deleteItemSlot) {
-//                                if (ScreenHandler.unpackQuickCraftStage(button) == 2) {
-//
-//                                } else if (!previousCursorStack.isEmpty() && this.handler.getCursorStack().isEmpty()) {
-//                                    JourneyClientNetworking.clickJourneyStack(slot.getStack(), ((JourneySlot) slot).slot.id);
-//                                }
-//                            }
-
-                        }
-                        for (int k = 9; k < 45; ++k) {
-                            Slot s = ((JourneyScreenHandler) this.handler).getSlot(k);
-                            JourneyClientNetworking.clickJourneyStack(s.getStack(), ((JourneySlot) s).slot.id);
-                        }
-                    } else {
-                        ItemStack itemStack3;
-                        if (actionType != SlotActionType.QUICK_CRAFT && slot.inventory == INVENTORY) {
-                            itemStack = ((JourneyScreenHandler) this.handler).getCursorStack();
-                            itemStack2 = slot.getStack();
-                            if (actionType == SlotActionType.SWAP) {
-                                if (!itemStack2.isEmpty() && this.client.player.getInventory().getStack(button).isEmpty()) {
-                                    this.client.player.getInventory().setStack(button, itemStack2.copyWithCount(itemStack2.getMaxCount()));
-                                    this.client.player.playerScreenHandler.sendContentUpdates();
-                                }
-
-                                return;
-                            }
-
-                            if (actionType == SlotActionType.CLONE) {
-                                if (((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && slot.hasStack()) {
-                                    itemStack3 = slot.getStack();
-                                    ((JourneyScreenHandler) this.handler).setCursorStack(itemStack3.copyWithCount(itemStack3.getMaxCount()));
-                                }
-
-                                return;
-                            }
-
-                            if (actionType == SlotActionType.THROW) {
-                                if (!itemStack2.isEmpty()) {
-                                    itemStack3 = itemStack2.copyWithCount(button == 0 ? 1 : itemStack2.getMaxCount());
-                                    this.client.player.dropItem(itemStack3, true);
-                                    JourneyClientNetworking.dropJourneyStack(itemStack3, this.client.player);
-                                }
-
-                                return;
-                            }
-
-                            if (!itemStack.isEmpty() && !itemStack2.isEmpty() && ItemStack.areItemsAndComponentsEqual(itemStack, itemStack2)) {
-                                if (button == 0) {
-                                    if (bl) {
-                                        itemStack.setCount(itemStack.getMaxCount());
-                                    } else if (itemStack.getCount() < itemStack.getMaxCount()) {
-                                        itemStack.increment(1);
-                                    }
-                                } else {
-                                    itemStack.decrement(1);
-                                }
-                            } else if (!itemStack2.isEmpty() && itemStack.isEmpty()) {
-                                int j = bl ? itemStack2.getMaxCount() : itemStack2.getCount();
-                                ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2.copyWithCount(j));
-                            } else if (button == 0) {
-                                ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
-                            } else if (!((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
-                                ((JourneyScreenHandler) this.handler).getCursorStack().decrement(1);
-                            }
-                        } else if (this.handler != null) {
-                            itemStack = slot == null ? ItemStack.EMPTY : ((JourneyScreenHandler) this.handler).getSlot(slot.id).getStack();
-                            ((JourneyScreenHandler) this.handler).onSlotClick(slot == null ? slotId : slot.id, button, actionType, this.client.player);
-                            int k;
-                            if (ScreenHandler.unpackQuickCraftStage(button) == 2) {
-                                for (k = 0; k < 9; ++k) {
-                                    JourneyClientNetworking.clickJourneyStack(((JourneyScreenHandler) this.handler).getSlot(45 + k).getStack(), 36 + k);
-                                }
-                            } else if (slot != null && PlayerInventory.isValidHotbarIndex(slot.getIndex()) && selectedTab.getType() != ItemGroup.Type.INVENTORY) {
-                                if (actionType == SlotActionType.THROW && !itemStack.isEmpty() && !((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
-                                    k = button == 0 ? 1 : itemStack.getCount();
-                                    itemStack3 = itemStack.copyWithCount(k);
-                                    itemStack.decrement(k);
-                                    this.client.player.dropItem(itemStack3, true);
-                                    JourneyClientNetworking.dropJourneyStack(itemStack3, this.client.player);
-                                }
-
+                    ItemStack itemStack3;
+                    if (actionType != SlotActionType.QUICK_CRAFT && slot.inventory == INVENTORY) {
+                        itemStack = ((JourneyScreenHandler) this.handler).getCursorStack();
+                        itemStack2 = slot.getStack();
+                        if (actionType == SlotActionType.SWAP) {
+                            if (!itemStack2.isEmpty() && this.client.player.getInventory().getStack(button).isEmpty()) {
+                                this.client.player.getInventory().setStack(button, itemStack2.copyWithCount(itemStack2.getMaxCount()));
                                 this.client.player.playerScreenHandler.sendContentUpdates();
-//                                JourneyClientNetworking.clickJourneyStack(slot.inventory.getStack(slot.getIndex()), slot.getIndex());
                             }
+
+                            return;
+                        }
+
+                        if (actionType == SlotActionType.CLONE) {
+                            if (((JourneyScreenHandler) this.handler).getCursorStack().isEmpty() && slot.hasStack()) {
+                                itemStack3 = slot.getStack();
+                                ((JourneyScreenHandler) this.handler).setCursorStack(itemStack3.copyWithCount(itemStack3.getMaxCount()));
+                            }
+
+                            return;
+                        }
+
+                        if (actionType == SlotActionType.THROW) {
+                            if (!itemStack2.isEmpty()) {
+                                itemStack3 = itemStack2.copyWithCount(button == 0 ? 1 : itemStack2.getMaxCount());
+                                this.client.player.dropItem(itemStack3, true);
+                                JourneyClientNetworking.dropJourneyStack(itemStack3, this.client.player);
+                            }
+
+                            return;
+                        }
+
+                        if (!itemStack.isEmpty() && !itemStack2.isEmpty() && ItemStack.areItemsAndComponentsEqual(itemStack, itemStack2)) {
+                            if (button == 0) {
+                                if (bl) {
+                                    itemStack.setCount(itemStack.getMaxCount());
+                                } else if (itemStack.getCount() < itemStack.getMaxCount()) {
+                                    itemStack.increment(1);
+                                }
+                            } else {
+                                itemStack.decrement(1);
+                            }
+                        } else if (!itemStack2.isEmpty() && itemStack.isEmpty()) {
+                            int j = bl ? itemStack2.getMaxCount() : itemStack2.getCount();
+                            ((JourneyScreenHandler) this.handler).setCursorStack(itemStack2.copyWithCount(j));
+                        } else if (button == 0) {
+                            ((JourneyScreenHandler) this.handler).setCursorStack(ItemStack.EMPTY);
+                        } else if (!((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
+                            ((JourneyScreenHandler) this.handler).getCursorStack().decrement(1);
+                        }
+                    } else if (this.handler != null) {
+                        itemStack = slot == null ? ItemStack.EMPTY : ((JourneyScreenHandler) this.handler).getSlot(slot.id).getStack();
+                        ((JourneyScreenHandler) this.handler).onSlotClick(slot == null ? slotId : slot.id, button, actionType, this.client.player);
+                        int k;
+                        if (ScreenHandler.unpackQuickCraftStage(button) == 2) {
+                            for (k = 0; k < 9; ++k) {
+                                JourneyClientNetworking.clickJourneyStack(((JourneyScreenHandler) this.handler).getSlot(45 + k).getStack(), 36 + k);
+                            }
+                        } else if (slot != null && PlayerInventory.isValidHotbarIndex(slot.getIndex()) && selectedTab.getType() != ItemGroup.Type.INVENTORY) {
+                            if (actionType == SlotActionType.THROW && !itemStack.isEmpty() && !((JourneyScreenHandler) this.handler).getCursorStack().isEmpty()) {
+                                k = button == 0 ? 1 : itemStack.getCount();
+                                itemStack3 = itemStack.copyWithCount(k);
+                                itemStack.decrement(k);
+                                this.client.player.dropItem(itemStack3, true);
+                                JourneyClientNetworking.dropJourneyStack(itemStack3, this.client.player);
+                            }
+
+                            this.client.player.playerScreenHandler.sendContentUpdates();
                         }
                     }
                 }
@@ -634,7 +601,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             };
         }
 
-        Stream var10000 = Registries.ITEM.streamTags().map(RegistryEntryList.Named::getTag).filter((tag) -> {
+        Stream var10000 = Registries.ITEM.streamTags().filter((tag) -> {
             return predicate.test(tag.id());
         });
         Set var10001 = this.searchResultTags;
@@ -867,8 +834,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
-        this.statusEffectsDisplay.drawStatusEffects(context, mouseX, mouseY, deltaTicks);
+//        this.statusEffectsDisplay.drawStatusEffects(context, mouseX, mouseY, deltaTicks);
         Iterator var5 = ItemGroups.getGroupsToDisplay().iterator();
+
 
         while (var5.hasNext()) {
             ItemGroup itemGroup = (ItemGroup)var5.next();
@@ -885,10 +853,6 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
 
         this.drawMouseoverTooltip(context, mouseX, mouseY);
-    }
-
-    public boolean showStatusEffects() {
-        return this.statusEffectsDisplay.shouldHideStatusEffectHud();
     }
 
     public List<Text> getTooltipFromItem(ItemStack stack) {
@@ -939,9 +903,9 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         }
 
         if (selectedTab.getType() == ItemGroup.Type.INVENTORY) {
-            context.drawTexture(RenderLayer::getGuiTextured, JourneyInventoryScreen.JOURNEY_INVENTORY_TEXTURE, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(JourneyInventoryScreen.JOURNEY_INVENTORY_TEXTURE, this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
         } else {
-            context.drawTexture(RenderLayer::getGuiTextured, selectedTab.getTexture(), this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+            context.drawTexture(selectedTab.getTexture(), this.x, this.y, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
         }
         this.searchBox.render(context, mouseX, mouseY, deltaTicks);
         int i = this.x + 175;
@@ -949,7 +913,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
         int k = j + 112;
         if (selectedTab.hasScrollbar()) {
             Identifier identifier = this.hasScrollbar() ? SCROLLER_TEXTURE : SCROLLER_DISABLED_TEXTURE;
-            context.drawGuiTexture(RenderLayer::getGuiTextured, identifier, i, j + (int)((float)(k - j - 17) * this.scrollPosition), 12, 15);
+            context.drawGuiTexture(identifier, i, j + (int)((float)(k - j - 17) * this.scrollPosition), 12, 15);
         }
 
         this.renderTabIcon(context, selectedTab);
@@ -1018,7 +982,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
             identifiers = bl ? TAB_BOTTOM_SELECTED_TEXTURES : TAB_BOTTOM_UNSELECTED_TEXTURES;
         }
 
-        context.drawGuiTexture(RenderLayer::getGuiTextured, identifiers[MathHelper.clamp(i, 0, identifiers.length)], j, k, 26, 32);
+        context.drawGuiTexture(identifiers[MathHelper.clamp(i, 0, identifiers.length)], j, k, 26, 32);
         int l = j + 13 - 8;
         int m = k + 16 - 8 + (bl2 ? 1 : -1);
         context.drawItem(group.getIcon(), l, m);
@@ -1240,6 +1204,15 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
                 player.dropItem(cursorStack, true);
                 JourneyClientNetworking.dropJourneyStack(cursorStack, (ClientPlayerEntity) player);
                 this.setCursorStack(ItemStack.EMPTY);
+            }
+        }
+
+        private void addPlayerHotbarSlots(PlayerInventory playerInventory, int x, int y) {
+            int m;
+
+            // Player Hotbar
+            for (m = 0; m < 9; ++m) {
+                this.addSlot(new Slot(playerInventory, m, x + m * 18, y + 58));
             }
         }
 

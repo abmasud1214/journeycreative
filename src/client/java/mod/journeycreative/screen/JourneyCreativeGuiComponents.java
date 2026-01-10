@@ -47,7 +47,7 @@ public class JourneyCreativeGuiComponents {
         Stream<RegistryKey<ItemGroup>> groupStream = ImmutableSet.of(ItemGroups.SEARCH, ItemGroups.INVENTORY, ItemGroups.HOTBAR, ItemGroups.OPERATOR).stream();
         Registry<ItemGroup> groupRegistries = Registries.ITEM_GROUP;
         Objects.requireNonNull(groupRegistries);
-        COMMON_GROUPS = (Set<ItemGroup>) groupStream.map(groupRegistries::getValueOrThrow).collect(Collectors.toSet());
+        COMMON_GROUPS = (Set<ItemGroup>) groupStream.map(groupRegistries::getOrThrow).collect(Collectors.toSet());
     }
 
     @Environment(EnvType.CLIENT)
@@ -89,7 +89,7 @@ public class JourneyCreativeGuiComponents {
             if (this.visible) {
                 int u = this.active && this.isHovered() ? 20 : 0;
                 int v = this.active ? 0 : 12;
-                drawContext.drawTexture(RenderLayer::getGuiTextured, JourneyCreativeGuiComponents.BUTTON_TEX, this.getX(), this.getY(), (float) (u + (this.type == JourneyCreativeGuiComponents.Type.NEXT ? 10 : 0)), (float) v, 10, 12, 256, 256);
+                drawContext.drawTexture(JourneyCreativeGuiComponents.BUTTON_TEX, this.getX(), this.getY(), (float) (u + (this.type == JourneyCreativeGuiComponents.Type.NEXT ? 10 : 0)), (float) v, 10, 12, 256, 256);
                 if (this.isHovered()) {
                     drawContext.drawTooltip(MinecraftClient.getInstance().textRenderer, Text.translatable("fabric.gui.creativeTabPage", new Object[]{this.screen.getCurrentPage() + 1, JourneyCreativeGuiComponents.getPageCount()}), mouseX, mouseY);
                 }

@@ -30,7 +30,7 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
     protected void drawBackground(DrawContext context, float deltaTicks, int mouseX, int mouseY) {
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
+        context.drawTexture(TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
     }
 
     @Override
@@ -72,11 +72,11 @@ public class ResearchVesselScreen extends HandledScreen<ResearchVesselScreenHand
         boolean bl2 = warning != null && !warning.getString().isEmpty();
         if (!(handler.getInventoryCapacity() == 0) && (bl || bl2)) {
             if (bl) {
-                context.drawTexture(RenderLayer::getGuiTextured, INVALID_RESEARCH_TEXTURE,
+                context.drawTexture(INVALID_RESEARCH_TEXTURE,
                         this.x + 157, this.y + 5, 0, 0,
                         11, 11, 11, 11);
             } else {
-                context.drawTexture(RenderLayer::getGuiTextured, WARNING_RESEARCH_TEXTURE,
+                context.drawTexture(WARNING_RESEARCH_TEXTURE,
                         this.x + 161, this.y + 5, 0, 0,
                         11, 11, 11, 11);
             }
