@@ -18,13 +18,12 @@ public class ModItems {
             settings -> new ResearchCertificateItem(settings),
             new Item.Settings()
                     .maxCount(1)
-                    .useCooldown(.5f)
                     .component(ModComponents.RESEARCH_ITEM_COMPONENT, new ItemStack(Items.BARRIER)));
 
     public static Item register(String name, Function<Item.Settings, Item> itemFactory, Item.Settings settings) {
         RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Journeycreative.MOD_ID, name));
 
-        Item item = itemFactory.apply(settings.registryKey(itemKey));
+        Item item = itemFactory.apply(settings);
 
         Registry.register(Registries.ITEM, itemKey, item);
 

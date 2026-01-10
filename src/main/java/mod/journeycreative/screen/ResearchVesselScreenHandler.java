@@ -273,7 +273,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
                 for (Identifier id : prerequisites) {
                     ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
                     if (!playerUnlocksData.isUnlocked(prereqStack, serverWorld.getGameRules().getBoolean(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
-                        prereqs.add(prereqStack.getItemName());
+                        prereqs.add(prereqStack.getName());
                     }
                 }
             }
@@ -282,7 +282,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
                 prereqText.append(Text.literal("["));
                 prereqText.append(Texts.join(prereqs, Text.literal(", ")));
                 prereqText.append(Text.literal("]"));
-                Text warning = Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqText, target.getItemName());
+                Text warning = Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqText, target.getName());
                 this.warning = warning;
                 ServerPlayNetworking.send(
                         serverPlayer,
@@ -307,5 +307,20 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
 
     public void setWarning(Text warning) {
         this.warning = warning;
+    }
+
+    private void addPlayerSlots(PlayerInventory playerInventory, int x, int y) {
+        int m;
+        int l;
+        // Player Inventory (3 rows)
+        for (m = 0; m < 3; ++m) {
+            for (l = 0; l < 9; ++l) {
+                this.addSlot(new Slot(playerInventory, l + m * 9 + 9, x + l * 18, y + m * 18));
+            }
+        }
+        // Player Hotbar
+        for (m = 0; m < 9; ++m) {
+            this.addSlot(new Slot(playerInventory, m, x + m * 18, y + 58));
+        }
     }
 }

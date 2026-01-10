@@ -105,7 +105,7 @@ public class PlayerUnlocksData {
         NbtCompound nbt = new NbtCompound();
         NbtList list = new NbtList();
         for (ItemStack stack : unlockedItemKeys) {
-            list.add(stack.toNbt(registries));
+            list.add(stack.encode(registries));
         }
 
         nbt.put("unlockedItems", list);

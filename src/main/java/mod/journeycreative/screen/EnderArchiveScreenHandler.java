@@ -43,7 +43,7 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
     }
 
     private EnderArchiveScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context, World world) {
-        super(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, syncId, playerInventory, context, createForgingSlotsManager(world.getRecipeManager()));
+        super(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, syncId, playerInventory, context);
         this.invalidRecipe = Property.create();
         this.reason = Property.create();
         this.world = world;
@@ -51,10 +51,17 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
         this.addProperty(this.reason).set(0);
     }
 
-    private static ForgingSlotsManager createForgingSlotsManager(RecipeManager recipeManager) {
-        ForgingSlotsManager.Builder builder = ForgingSlotsManager.builder();
-        builder = builder.input(0, 53, 33, EnderArchiveScreenHandler::canUseSlot);
-        return builder.output(1, 107, 33).build();
+    @Override
+    protected ForgingSlotsManager getForgingSlotsManager() {
+        return ForgingSlotsManager.create()
+                .input(0, 53, 33, stack -> stack.getItem() instanceof BlockItem bi && bi.getBlock() == ModBlocks.RESEARCH_VESSEL_BLOCK)
+                .output(1, 107, 33)
+                .build();
+    }
+
+    @Override
+    protected boolean canTakeOutput(PlayerEntity player, boolean present) {
+        return present && this.reason.get() == researchInvalidReason.VALID.ordinal();
     }
 
     protected boolean canUse(BlockState state) {

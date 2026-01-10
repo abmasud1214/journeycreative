@@ -56,8 +56,14 @@ public class ResearchCertificateItem extends Item {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        ItemStack itemStack = user.getStackInHand(hand);
+
+        if (user.getItemCooldownManager().isCoolingDown(this)) {
+            return TypedActionResult.fail(itemStack);
+        }
+
         user.setCurrentHand(hand);
-        return TypedActionResult.consume(user.getStackInHand(hand));
+        return TypedActionResult.consume(itemStack);
     }
 
     @Override
@@ -121,6 +127,7 @@ public class ResearchCertificateItem extends Item {
             if (unlocked) {
                 player.sendMessage(Text.translatable("item.journeycreative.research_certificate.unlocked", getItemName(research_target)), true);
                 stack.decrement(1);
+                player.getItemCooldownManager().set(this, 10);
             } else {
                 player.sendMessage(Text.translatable("item.journeycreative.research_certificate.already_unlocked", getItemName(research_target)), true);
             }
