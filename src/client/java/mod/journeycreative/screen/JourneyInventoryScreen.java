@@ -52,7 +52,6 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Unit;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +60,14 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+/*
+ * This file is part of Journey Creative.
+ * * Potions of this code are derived from Minecraft source code.
+ * Intellectual Property of Mojang AB. All rights reserved.
+ *
+ * All modifications, additions, and custom logic are licensed under the MIT License.
+ * Full license text can be found in the LICENSE file at the root of this project.
+ */
 public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen.JourneyScreenHandler> implements FabricCreativeInventoryScreen {
     public static final ButtonTextures JOURNEY_BUTTON_TEXTURES = new ButtonTextures(
             Identifier.of(Journeycreative.MOD_ID, "journey_button"),
