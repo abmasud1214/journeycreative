@@ -2,7 +2,6 @@ package mod.journeycreative.networking;
 
 import mod.journeycreative.screen.TrashcanInventory;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.SimpleInventory;
 
 import java.util.HashMap;
 import java.util.Map;

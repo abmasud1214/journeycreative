@@ -4,7 +4,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.entity.Entity;
 
 
 @Environment(EnvType.CLIENT)
