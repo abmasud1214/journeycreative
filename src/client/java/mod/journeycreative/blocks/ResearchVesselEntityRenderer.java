@@ -6,23 +6,18 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.entity.model.LoadedEntityModels;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 
 import java.util.Objects;
-import java.util.Set;
 
 @Environment(EnvType.CLIENT)
 public class ResearchVesselEntityRenderer implements BlockEntityRenderer<ResearchVesselBlockEntity> {
@@ -50,7 +45,6 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         this.setTransforms(matrices, facing, openness);
         ResearchVesselBlockModel blockModel = this.model;
         Objects.requireNonNull(blockModel);
-//        VertexConsumer vertexConsumer = textureId.getVertexConsumer(vertexConsumers, blockModel::getLayer);
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
         this.model.render(matrices, vertexConsumer, light, overlay);
         matrices.pop();

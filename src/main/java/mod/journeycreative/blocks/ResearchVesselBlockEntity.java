@@ -1,14 +1,11 @@
 package mod.journeycreative.blocks;
 
-import mod.journeycreative.Journeycreative;
 import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.screen.ResearchVesselScreenHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.component.ComponentsAccess;
@@ -17,7 +14,6 @@ import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -25,8 +21,6 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
@@ -35,7 +29,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class ResearchVesselBlockEntity extends LootableContainerBlockEntity implements NamedScreenHandlerFactory, SidedInventory, ResearchVesselInventory {
