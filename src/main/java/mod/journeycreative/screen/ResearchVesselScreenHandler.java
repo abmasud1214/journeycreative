@@ -201,7 +201,7 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
 
         ClickType clickType = button == 0 ? ClickType.LEFT : ClickType.RIGHT;
         ItemStack inputStack;
-        if (actionType != SlotActionType.QUICK_MOVE && clickType == ClickType.LEFT) {
+        if (clickType == ClickType.RIGHT) {
             inputStack = stack.copyWithCount(1);
         } else {
             inputStack = stack;
