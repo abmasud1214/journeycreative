@@ -3,7 +3,6 @@ package mod.journeycreative.blocks;
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.items.EnderArchiveBlockItem;
 import mod.journeycreative.items.ModComponents;
-import mod.journeycreative.items.ModItems;
 import mod.journeycreative.items.ResearchVesselBlockItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -23,7 +22,6 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;

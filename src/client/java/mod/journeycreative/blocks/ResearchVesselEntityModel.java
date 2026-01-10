@@ -4,7 +4,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.entity.Entity;
 
 
 @Environment(EnvType.CLIENT)
@@ -45,7 +44,6 @@ public class ResearchVesselEntityModel extends EntityModel<ResearchVesselEntityR
 
         this.Top.resetTransform();
 
-//        float f = (researchVesselEntityRenderState.openProgress * 11.0F) + 5.0F;
         float f = 24.0F - researchVesselEntityRenderState.openProgress * 11.0F;
         this.Top.setOrigin(0, f, 0);
     }

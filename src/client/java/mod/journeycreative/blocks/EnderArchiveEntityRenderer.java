@@ -1,9 +1,10 @@
 package mod.journeycreative.blocks;
 
 import mod.journeycreative.Journeycreative;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.block.entity.state.BlockEntityRenderState;
@@ -24,7 +25,6 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
     private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/ender_archive.png");
 
     public EnderArchiveEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-//        this(ctx.getLoadedEntityModels());
         this(ctx.loadedEntityModels());
     }
 

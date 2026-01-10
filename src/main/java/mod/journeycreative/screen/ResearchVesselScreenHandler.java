@@ -2,7 +2,6 @@ package mod.journeycreative.screen;
 
 import mod.journeycreative.Journeycreative;
 import mod.journeycreative.ResearchConfig;
-import mod.journeycreative.blocks.ResearchVesselBlockEntity;
 import mod.journeycreative.blocks.ResearchVesselInventory;
 import mod.journeycreative.networking.JourneyNetworking;
 import mod.journeycreative.networking.PlayerUnlocksData;
@@ -11,13 +10,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.Property;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.ShulkerBoxSlot;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -110,11 +106,9 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             ItemStack originalStack = slot.getStack();
             newStack = originalStack.copy();
             if (invSlot < this.inventory.size()) {
-//                if (!this.insertItem(originalStack, this.inventory.size(), this.slots.size(), true)) {
                 if (!this.insertItem(originalStack, this.inventory.size(), this.slots.size(), true)) { // FROM VESSEL TO INVENTORY
                     return ItemStack.EMPTY;
                 }
-//            } else if (!this.insertItem(originalStack, 0, this.inventory.size(), false)) {
             }
             // ONLY NEED TO DO QUICK MOVE FROM CONTAINER INVENTORY
             // BECAUSE quickMove IS CALLED BY ScreenHandler.onSlotClick

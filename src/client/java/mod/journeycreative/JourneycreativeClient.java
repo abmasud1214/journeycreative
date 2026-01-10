@@ -13,14 +13,9 @@ import mod.journeycreative.networking.JourneyClientNetworking;
 import mod.journeycreative.screen.ModScreensClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.util.Identifier;
 
 public class JourneycreativeClient implements ClientModInitializer {
-
-
 
 	@Override
 	public void onInitializeClient() {
