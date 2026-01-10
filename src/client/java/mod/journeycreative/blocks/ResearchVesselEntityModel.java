@@ -43,7 +43,7 @@ public class ResearchVesselEntityModel extends Model {
     }
 
     public void setOpenProgress(float progress) {
-        float pivotY = (progress * 11.0F) + 5.0F;
+        float pivotY = 24.0F - progress * 11.0F;
         this.Top.pivotY = pivotY;
     }
 
