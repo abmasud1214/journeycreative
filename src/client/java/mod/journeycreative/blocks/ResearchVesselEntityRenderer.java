@@ -26,7 +26,7 @@ import java.util.Set;
 
 @Environment(EnvType.CLIENT)
 public class ResearchVesselEntityRenderer implements BlockEntityRenderer<ResearchVesselBlockEntity> {
-    private final ResearchVesselBlockModel model;
+    private final ResearchVesselEntityModel model;
     private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/research_vessel.png");
 
     public ResearchVesselEntityRenderer(BlockEntityRendererFactory.Context ctx) {
@@ -34,7 +34,7 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
     }
 
     public ResearchVesselEntityRenderer(EntityModelLoader loader) {
-        this.model = new ResearchVesselBlockModel(loader.getModelPart(ModModelLayers.RESEARCH_VESSEL));
+        this.model = new ResearchVesselEntityModel(loader.getModelPart(ModModelLayers.RESEARCH_VESSEL));
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, Direction facing, float openness, boolean show_portal) {
         matrices.push();
         this.setTransforms(matrices, facing, openness);
-        ResearchVesselBlockModel blockModel = this.model;
+        ResearchVesselEntityModel blockModel = this.model;
         Objects.requireNonNull(blockModel);
 //        VertexConsumer vertexConsumer = textureId.getVertexConsumer(vertexConsumers, blockModel::getLayer);
         VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(TEXTURE));
@@ -90,20 +90,6 @@ public class ResearchVesselEntityRenderer implements BlockEntityRenderer<Researc
         matrices.scale(0.9995F, 0.9995F, 0.9995F);
         matrices.scale(1.0F, -1.0F, -1.0F);
         matrices.translate(0.0F, -1.0F, 0.0F);
-        this.model.animateTop(openness);
-    }
-
-    @Environment(EnvType.CLIENT)
-    private static class ResearchVesselBlockModel extends Model {
-        private final ModelPart Top;
-
-        public ResearchVesselBlockModel(ModelPart root) {
-            super(root, RenderLayer::getEntityCutoutNoCull);
-            this.Top = root.getChild("Top");
-        }
-
-        public void animateTop(float openness) {
-            this.Top.setPivot(0.0F, 24.0F - openness * 11.0F, 0.0F);
-        }
+        this.model.setOpenProgress(openness);
     }
 }

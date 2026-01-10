@@ -3,17 +3,20 @@ package mod.journeycreative.blocks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 
 
 @Environment(EnvType.CLIENT)
-public class ResearchVesselEntityModel extends EntityModel<ResearchVesselEntityRenderState> {
+public class ResearchVesselEntityModel extends Model {
     private final ModelPart Bottom;
     private final ModelPart Top;
 
     public ResearchVesselEntityModel(ModelPart root) {
-        super(root);
+        super(RenderLayer::getEntityCutout);
         this.Bottom = root.getChild("Bottom");
         this.Top = root.getChild("Top");
     }
@@ -39,12 +42,15 @@ public class ResearchVesselEntityModel extends EntityModel<ResearchVesselEntityR
         return TexturedModelData.of(modelData, 64, 64);
     }
 
-    @Override
-    public void setAngles(ResearchVesselEntityRenderState researchVesselEntityRenderState) {
-        super.setAngles(researchVesselEntityRenderState);
+    public void setOpenProgress(float progress) {
+        float pivotY = (progress * 11.0F) + 5.0F;
+        this.Top.pivotY = pivotY;
+    }
 
-        float f = (researchVesselEntityRenderState.openProgress * 11.0F) + 5.0F;
-        this.Top.setPivot(0, f, 0);
+    @Override
+    public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
+        this.Bottom.render(matrices, vertices, light, overlay, color);
+        this.Top.render(matrices, vertices, light, overlay, color);
     }
 
 }
