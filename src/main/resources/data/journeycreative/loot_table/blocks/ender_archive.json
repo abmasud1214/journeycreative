@@ -9,11 +9,7 @@
           "name": "journeycreative:ender_archive"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ]
+      "conditions": []
     }
   ]
 }
