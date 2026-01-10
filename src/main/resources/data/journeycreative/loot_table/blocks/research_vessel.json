@@ -20,11 +20,7 @@
           "name": "journeycreative:research_vessel"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ],
+      "conditions": [],
       "rolls": 1.0
     }
   ]
