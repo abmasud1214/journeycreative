@@ -1212,7 +1212,7 @@ public class JourneyInventoryScreen extends HandledScreen<JourneyInventoryScreen
 
             // Player Hotbar
             for (m = 0; m < 9; ++m) {
-                this.addSlot(new Slot(playerInventory, m, x + m * 18, y + 58));
+                this.addSlot(new Slot(playerInventory, m, x + m * 18, y));
             }
         }
 
