@@ -6,11 +6,11 @@
     "nNn"
   ],
   "key": {
-    "n": "minecraft:netherite_ingot",
-    "B": "minecraft:book",
-    "E": "minecraft:end_crystal",
-    "N": "minecraft:nether_star",
-    "R": "journeycreative:research_vessel"
+    "n": {"item" : "minecraft:netherite_ingot"},
+    "B": {"item" : "minecraft:book"},
+    "E": {"item" : "minecraft:end_crystal"},
+    "N": {"item" : "minecraft:nether_star"},
+    "R": {"item" : "journeycreative:research_vessel"}
   },
   "result": {
     "count": 1,

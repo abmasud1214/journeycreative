@@ -6,11 +6,11 @@
     "#X#"
   ],
   "key": {
-    "#": "minecraft:dragon_breath",
-    "E": "minecraft:ender_eye",
-    "S": "minecraft:shulker_shell",
-    "C": "minecraft:chest",
-    "X": "minecraft:end_crystal"
+    "#": {"item" : "minecraft:dragon_breath"},
+    "E": {"item" : "minecraft:ender_eye"},
+    "S": {"item" : "minecraft:shulker_shell"},
+    "C": {"item" : "minecraft:chest"},
+    "X": {"item" : "minecraft:end_crystal"}
   },
   "result": {
     "count": 1,
