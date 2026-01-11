@@ -1,5 +1,8 @@
 {
   "prerequisites": {
+    "minecraft:copper_nugget": [
+      "minecraft:copper_ingot"
+    ],
     "minecraft:iron_nugget": [
       "minecraft:iron_ingot"
     ],
