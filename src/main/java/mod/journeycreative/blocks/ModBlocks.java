@@ -54,7 +54,7 @@ public class ModBlocks {
             ResearchVesselBlock::new,
             AbstractBlock.Settings.copy(Blocks.CHEST)
                     .nonOpaque()
-                    .strength(3.0F, 1200.0F)
+                    .strength(1.0F, 1200.0F)
                     .luminance(state -> state.get(ResearchVesselBlock.OPENED) ? 10 : 0)
     );
 
@@ -76,7 +76,7 @@ public class ModBlocks {
     public static final Block ENDER_ARCHIVE_BLOCK = register("ender_archive",
             EnderArchiveBlock::new,
             AbstractBlock.Settings.copy(Blocks.CHISELED_BOOKSHELF)
-                    .strength(3.0F, 1200.0F)
+                    .strength(5.0F, 1200.0F)
                     .luminance(state -> 5)
     );
 
