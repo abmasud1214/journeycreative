@@ -3,15 +3,16 @@
 	"id": "journeycreative",
 	"version": "${version}",
 	"name": "journeycreative",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Minecraft mod that adds an incremental creative mode based on Terraria's Journey Mode. ",
 	"authors": [
-		"Me!"
+		"Abdullah Masud"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/project/journey-creative/",
+		"sources": "https://github.com/abmasud1214/journeycreative",
+		"issues": "https://github.com/abmasud1214/journeycreative/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/journeycreative/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -33,8 +34,8 @@
 		"journeycreative.mixin.InventoryScreenMixin"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.14",
-		"minecraft": "~1.21.0",
+		"fabricloader": ">=${loader_version}",
+		"minecraft": ["1.21.0","1.21.1"],
 		"java": ">=21",
 		"fabric-api": "*"
 	},
