@@ -34,7 +34,9 @@ public class ResearchVesselBlockItem extends BlockItem {
             tooltip.add(Text.translatable("item.journeycreative.research_vessel.tooltip").formatted(Formatting.DARK_GRAY, Formatting.ITALIC));
         } else {
             ItemStack target = stack.get(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT);
-            int capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(Registries.ITEM.getId(target.getItem()),27 * target.getMaxCount());
+            int default_lim = (int) Math.ceil(27 * stack.getMaxCount() * ResearchConfig.DEFAULT_AMOUNT_ADJUSTMENT);
+            default_lim = Math.max(1, default_lim);
+            int capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(Registries.ITEM.getId(target.getItem()),default_lim);
             capacity = Math.min(capacity, 27 * target.getMaxCount());
             int quantity = 0;
             Iterable<ItemStack> containerStacks = containerComponent.iterateNonEmpty();
