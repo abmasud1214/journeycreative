@@ -11,6 +11,7 @@ import java.util.*;
 
 public class ResearchConfig {
     public static final Map<Identifier, Integer> RESEARCH_AMOUNT_REQUIREMENTS = new HashMap<>();
+    public static float DEFAULT_AMOUNT_ADJUSTMENT = 1.0f;
     public static final Map<Identifier, List<Identifier>> RESEARCH_PREREQUISITES = new HashMap<>();
     public static final Set<Identifier> RESEARCH_PROHIBITED = new HashSet<>();
     public static final Set<Identifier> RESEARCH_BLOCKED = new HashSet<>();
@@ -25,6 +26,8 @@ public class ResearchConfig {
 
             RESEARCH_AMOUNT_REQUIREMENTS.put(itemId, amount);
         }
+
+        DEFAULT_AMOUNT_ADJUSTMENT = root.getAsJsonPrimitive("default").getAsFloat();
     }
 
     public static void loadResearchPrerequisites(Reader reader) {

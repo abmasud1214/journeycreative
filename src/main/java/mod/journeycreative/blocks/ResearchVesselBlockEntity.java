@@ -125,8 +125,10 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
             if (!stack.isEmpty()) {
                 empty = false;
                 target = stack;
+                int default_lim = (int) Math.ceil(27 * stack.getMaxCount() * ResearchConfig.DEFAULT_AMOUNT_ADJUSTMENT);
+                default_lim = Math.max(1, default_lim);
                 capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(
-                        Registries.ITEM.getId(stack.getItem()),27 * stack.getMaxCount());
+                        Registries.ITEM.getId(stack.getItem()),default_lim);
                 capacity = Math.min(capacity, 27 * stack.getMaxCount());
             }
         }
@@ -167,8 +169,10 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
     @Override
     public int insertIntoInventory(ItemStack stack) {
         int quantity = this.count(stack.getItem());
+        int default_lim = (int) Math.ceil(27 * stack.getMaxCount() * ResearchConfig.DEFAULT_AMOUNT_ADJUSTMENT);
+        default_lim = Math.max(1, default_lim);
         int capacity = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(
-                Registries.ITEM.getId(stack.getItem()),27 * stack.getMaxCount());
+                Registries.ITEM.getId(stack.getItem()),default_lim);
         capacity = Math.min(capacity, 27 * stack.getMaxCount());
         int remaining = capacity - quantity;
         int split = Math.min(remaining, stack.getCount());
