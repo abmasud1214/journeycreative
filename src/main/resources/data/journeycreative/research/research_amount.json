@@ -1,4 +1,6 @@
 {
+  "default": 1.0,
+  "_default_comment": "Recommended to add many digits after the decimal to ensure precision (e.g 0.66666666 for 2/3), multiplier always round up",
   "requirements": {
     "minecraft:angler_pottery_sherd": 16,
     "minecraft:archer_pottery_sherd": 16,

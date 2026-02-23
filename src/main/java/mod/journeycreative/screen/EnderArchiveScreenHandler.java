@@ -148,7 +148,9 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
 
     private static boolean fullContainer(ItemStack target, ContainerComponent container) {
         Iterable<ItemStack> containerStacks = container.iterateNonEmpty();
-        int full = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(Registries.ITEM.getId(target.getItem()),27 * target.getMaxCount());
+        int default_lim = (int) Math.ceil(27 * target.getMaxCount() * ResearchConfig.DEFAULT_AMOUNT_ADJUSTMENT);
+        default_lim = Math.max(1, default_lim);
+        int full = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(Registries.ITEM.getId(target.getItem()),default_lim);
         full = Math.min(full, 27 * target.getMaxCount());
         for (ItemStack stack : containerStacks) {
             full -= stack.getCount();
