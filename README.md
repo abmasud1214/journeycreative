@@ -27,6 +27,7 @@ You can change the gamerule researchItemsUnlocked to True and the Research Vesse
 This mod facilitates configuring the research process by adding a datapack under data/journeycreative/research. [See an example](src/main/resources/data/journeycreative/research)
 
 1. research_amount.json: Changes the amount of items needed to research (this can't go above the natural limit of one shulker box).
+    - If you want to modify the amount of items needed to research for every item, there is a default multiplier in the json. Change this from 1.0 to a smaller value to decrease the amount of items needed. For example, change it from 1.0 to 0.33333333 to require only one row of items for the research requirement. Add a lot of decimals for precision. The number of items will always be rounded up to the next integer and can never be 0.
 2. research_prerequisite.json: Makes it so you can't research an item until you've finished researching another item (e.g. you can't research iron nuggets until you've researched iron ingots).
 3. research_prohibited.json: Completely prevents an item from ever being researched / unlocked in the journey inventory.
 4. research_certificate_blocked.json: Prevents you from creating a Research Certificate in the Ender Archive, but still allows you to use a Research Certificate to research the item. This isn't used, but is there in case a modpack developer / server owner wants to use some other method to unlock an item instead (e.g. quest book reward.)
