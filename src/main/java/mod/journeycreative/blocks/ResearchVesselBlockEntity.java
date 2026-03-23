@@ -15,6 +15,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.SidedInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -189,6 +190,20 @@ public class ResearchVesselBlockEntity extends LootableContainerBlockEntity impl
             }
         }
         return split;
+    }
+
+    @Override
+    public int count(Item item) {
+        int c = 0;
+
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack stack = inventory.get(i);
+            if (stack.getItem().equals(item)) {
+                c += stack.getCount();
+            }
+        }
+
+        return c;
     }
 
     public float getAnimationProgress(float tickProgress) {
