@@ -1,10 +1,10 @@
 package mod.journeycreative.screen;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.gui.screens.MenuScreens;
 
 public class ModScreensClient {
     public static void initialize() {
-        HandledScreens.register(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER, ResearchVesselScreen::new);
-        HandledScreens.register(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, EnderArchiveScreen::new);
+        MenuScreens.register(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER, ResearchVesselScreen::new);
+        MenuScreens.register(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, EnderArchiveScreen::new);
     }
 }

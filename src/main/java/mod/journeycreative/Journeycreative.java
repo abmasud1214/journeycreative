@@ -12,12 +12,14 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.rule.GameRule;
-import net.minecraft.world.rule.GameRuleCategory;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRuleCategory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +32,7 @@ public class Journeycreative implements ModInitializer {
 
 	public static final GameRule<Boolean> RESEARCH_ITEMS_UNLOCKED = GameRuleBuilder.forBoolean(false)
 		.category(GameRuleCategory.MISC)
-		.buildAndRegister(Identifier.of("journeycreative", "research_items_unlocked"));
+		.buildAndRegister(Identifier.fromNamespaceAndPath(MOD_ID, "research_items_unlocked"));
 
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
@@ -42,16 +44,12 @@ public class Journeycreative implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
-		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+		ResourceLoader.get(PackType.SERVER_DATA).registerReloadListener(Identifier.fromNamespaceAndPath(MOD_ID, "research"),
+				new ResourceManagerReloadListener() {
 			@Override
-			public Identifier getFabricId() {
-				return Identifier.of("journeycreative", "research");
-			}
-
-			@Override
-			public void reload(ResourceManager manager) {
-				for (Identifier id : manager.findResources("research", path -> path.toString().endsWith(".json")).keySet()) {
-					try(InputStream stream = manager.getResource(id).get().getInputStream()) {
+			public void onResourceManagerReload(ResourceManager manager) {
+				for (Identifier id : manager.listResources("research", path -> path.toString().endsWith(".json")).keySet()) {
+					try(InputStream stream = manager.getResource(id).get().open()) {
 						Reader reader = new InputStreamReader(stream);
 
 						if (id.getPath().endsWith("research_amount.json")) {
@@ -88,7 +86,7 @@ public class Journeycreative implements ModInitializer {
 				.register((value, server) -> {
 					boolean unlocked = value;
 
-					for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+					for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 						ServerPlayNetworking.send(
 								player,
 								new JourneyNetworking.SyncResearchItemsUnlockRulePayload(unlocked)

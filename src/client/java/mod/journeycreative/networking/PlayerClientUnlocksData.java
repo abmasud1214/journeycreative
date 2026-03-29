@@ -1,6 +1,6 @@
 package mod.journeycreative.networking;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class PlayerClientUnlocksData {
     public static PlayerUnlocksData playerUnlocksData = new PlayerUnlocksData();

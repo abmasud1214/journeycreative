@@ -1,10 +1,11 @@
 package mod.journeycreative.blocks;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class EnderArchiveBlockEntity extends BlockEntity {
     private BookPresent[] booksPresent = new BookPresent[6];
@@ -24,11 +25,11 @@ public class EnderArchiveBlockEntity extends BlockEntity {
         }
     }
 
-    public static void tick(World world, BlockPos pos, BlockState state, EnderArchiveBlockEntity blockEntity) {
+    public static void tick(Level world, BlockPos pos, BlockState state, EnderArchiveBlockEntity blockEntity) {
         blockEntity.updateAnimation(world, pos, state);
     }
 
-    private void updateAnimation(World world, BlockPos pos, BlockState state) {
+    private void updateAnimation(Level world, BlockPos pos, BlockState state) {
         int book = -1;
         timeUntilNextBook -= 1;
         if (timeUntilNextBook < 0.0F) {
@@ -75,7 +76,7 @@ public class EnderArchiveBlockEntity extends BlockEntity {
     public float[] getBookTransparency(float tickProgress) {
         float[] transparency = new float[6];
         for (int i = 0; i < 6; i++) {
-            transparency[i] = MathHelper.lerp(tickProgress, this.lastAnimationProgress[i], this.animationProgress[i]) * targetTransparency[i];
+            transparency[i] = Mth.lerp(tickProgress, this.lastAnimationProgress[i], this.animationProgress[i]) * targetTransparency[i];
         }
         return transparency;
     }

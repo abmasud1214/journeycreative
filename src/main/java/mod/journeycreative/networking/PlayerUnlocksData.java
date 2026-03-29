@@ -4,11 +4,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import mod.journeycreative.Journeycreative;
-import net.minecraft.component.ComponentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,14 +47,14 @@ public class PlayerUnlocksData {
         AtomicBoolean equal = new AtomicBoolean(false);
 
         unlockedItemKeys.stream().iterator().forEachRemaining(stack -> {
-            if (ItemStack.areItemsAndComponentsEqual(stack, normalized)) equal.set(true);
+            if (ItemStack.isSameItemSameComponents(stack, normalized)) equal.set(true);
         });
 
         if (researchItems) {
-            ItemStack researchVessel = normalizeForUnlocks(new ItemStack(Registries.ITEM.get(Identifier.of(Journeycreative.MOD_ID, "research_vessel")), 1));
-            ItemStack enderArchive = normalizeForUnlocks(new ItemStack(Registries.ITEM.get(Identifier.of(Journeycreative.MOD_ID, "ender_archive")), 1));
-            if (ItemStack.areItemsAndComponentsEqual(researchVessel, normalized)) equal.set(true);
-            if (ItemStack.areItemsAndComponentsEqual(enderArchive, normalized)) equal.set(true);
+            ItemStack researchVessel = normalizeForUnlocks(new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "research_vessel")), 1));
+            ItemStack enderArchive = normalizeForUnlocks(new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "ender_archive")), 1));
+            if (ItemStack.isSameItemSameComponents(researchVessel, normalized)) equal.set(true);
+            if (ItemStack.isSameItemSameComponents(enderArchive, normalized)) equal.set(true);
         }
 
         return equal.get();
@@ -66,18 +66,18 @@ public class PlayerUnlocksData {
         ItemStack copy = stack.copy();
         copy.setCount(1);
 
-        Set<ComponentType<?>> keepComponents = Set.of(
-                DataComponentTypes.POTION_CONTENTS,
-                DataComponentTypes.POTION_DURATION_SCALE,
-                DataComponentTypes.STORED_ENCHANTMENTS,
-                DataComponentTypes.INSTRUMENT,
-                DataComponentTypes.FIREWORKS,
-                DataComponentTypes.SUSPICIOUS_STEW_EFFECTS,
-                DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER
+        Set<DataComponentType<?>> keepComponents = Set.of(
+                DataComponents.POTION_CONTENTS,
+                DataComponents.POTION_DURATION_SCALE,
+                DataComponents.STORED_ENCHANTMENTS,
+                DataComponents.INSTRUMENT,
+                DataComponents.FIREWORKS,
+                DataComponents.SUSPICIOUS_STEW_EFFECTS,
+                DataComponents.OMINOUS_BOTTLE_AMPLIFIER
         );
 
         copy.getComponents().forEach(component -> {
-            ComponentType<?> componentType = component.type();
+            DataComponentType<?> componentType = component.type();
             if (!keepComponents.contains(componentType)) {
                 copy.remove(componentType);
             }

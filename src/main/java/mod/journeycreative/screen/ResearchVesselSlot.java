@@ -1,25 +1,25 @@
 package mod.journeycreative.screen;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 public class ResearchVesselSlot extends Slot {
-    public ResearchVesselSlot(Inventory inventory, int i, int j, int k) {
+    public ResearchVesselSlot(Container inventory, int i, int j, int k) {
         super(inventory, i, j, k);
     }
 
-    public boolean canInsert(ItemStack stack) {
+    public boolean mayPlace(ItemStack stack) {
         return canInsertItem(stack);
     }
 
     public static boolean canInsertItem(ItemStack stack) {
-        boolean nested = stack.getItem().canBeNested();
-        if (!nested && stack.contains(DataComponentTypes.CONTAINER)) {
-            ContainerComponent container = stack.get(DataComponentTypes.CONTAINER);
-            if (container.copyFirstStack().isEmpty()) {
+        boolean nested = stack.getItem().canFitInsideContainerItems();
+        if (!nested && stack.has(DataComponents.CONTAINER)) {
+            ItemContainerContents container = stack.get(DataComponents.CONTAINER);
+            if (container.copyOne().isEmpty()) {
                 nested = true;
             }
         }

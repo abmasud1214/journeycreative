@@ -10,46 +10,49 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.util.Cooldown;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.TickThrottler;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.List;
 
 public class JourneyNetworking {
-    public static final Identifier GIVE_ITEM = Identifier.of(Journeycreative.MOD_ID, "give_item");
-    public static final Identifier UNLOCK_ITEM = Identifier.of(Journeycreative.MOD_ID, "unlock_item");
-    public static final Identifier TRASH_CAN = Identifier.of(Journeycreative.MOD_ID, "trash_can");
-    public static final Identifier SYNC_UNLOCKED_ITEMS = Identifier.of(Journeycreative.MOD_ID, "sync_unlock_item");
-    public static final Identifier SYNC_TRASH_CAN = Identifier.of(Journeycreative.MOD_ID, "sync_trash_can");
-    public static final Identifier SYNC_RESEARCH_ITEMS_UNLOCKED_RULE = Identifier.of(Journeycreative.MOD_ID, "sync_research_rule");
-    public static final Identifier ROTATE_ITEMS = Identifier.of(Journeycreative.MOD_ID, "rotate_items");
-    public static final Identifier SEND_ITEM_WARNING_MESSAGE = Identifier.of(Journeycreative.MOD_ID, "send_item_warning_message");
+    public static final Identifier GIVE_ITEM = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "give_item");
+    public static final Identifier UNLOCK_ITEM = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "unlock_item");
+    public static final Identifier TRASH_CAN = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "trash_can");
+    public static final Identifier SYNC_UNLOCKED_ITEMS = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "sync_unlock_item");
+    public static final Identifier SYNC_TRASH_CAN = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "sync_trash_can");
+    public static final Identifier SYNC_RESEARCH_ITEMS_UNLOCKED_RULE = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "sync_research_rule");
+    public static final Identifier ROTATE_ITEMS = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "rotate_items");
+    public static final Identifier SEND_ITEM_WARNING_MESSAGE = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "send_item_warning_message");
 
     static final Logger LOGGER = LogUtils.getLogger();
-    private static final Map<UUID, Cooldown> playerCreativeItemDropCooldowns = new HashMap<>();
+    private static final Map<UUID, TickThrottler> playerCreativeItemDropCooldowns = new HashMap<>();
 
     public static void registerClientPackets() {
-        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncUnlockedItemsPayload.ID, JourneyNetworking.SyncUnlockedItemsPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID,
+        PayloadTypeRegistry.clientboundPlay().register(JourneyNetworking.SyncUnlockedItemsPayload.ID, JourneyNetworking.SyncUnlockedItemsPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(JourneyNetworking.SyncResearchItemsUnlockRulePayload.ID,
                 JourneyNetworking.SyncResearchItemsUnlockRulePayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(JourneyNetworking.SyncTrashCanPayload.ID,
+        PayloadTypeRegistry.clientboundPlay().register(JourneyNetworking.SyncTrashCanPayload.ID,
                 JourneyNetworking.SyncTrashCanPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(JourneyNetworking.ItemWarningMessage.ID,
+        PayloadTypeRegistry.clientboundPlay().register(JourneyNetworking.ItemWarningMessage.ID,
                 JourneyNetworking.ItemWarningMessage.CODEC);
     }
 
@@ -64,16 +67,16 @@ public class JourneyNetworking {
 
     public static void tick() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            playerCreativeItemDropCooldowns.values().forEach(Cooldown::tick);
+            playerCreativeItemDropCooldowns.values().forEach(TickThrottler::tick);
         });
     }
 
     public static void rotateItemsPacket() {
-        PayloadTypeRegistry.playC2S().register(RotateItemsPayload.ID, RotateItemsPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(RotateItemsPayload.ID, RotateItemsPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(RotateItemsPayload.ID, (payload, context) -> {
-            PlayerEntity player = context.player();
-            PlayerInventory inv = player.getInventory();
+            Player player = context.player();
+            Inventory inv = player.getInventory();
 
             boolean reversed = payload.reversed();
 
@@ -82,34 +85,34 @@ public class JourneyNetworking {
             List<ItemStack> row2 = new ArrayList<>();
             List<ItemStack> row3 = new ArrayList<>();
 
-            for (int i = 0; i < 9; i++) hotbar.add(inv.getStack(i));
-            for (int i = 9; i < 18; i++) row1.add(inv.getStack(i));
-            for (int i = 18; i < 27; i++) row2.add(inv.getStack(i));
-            for (int i = 27; i < 36; i++) row3.add(inv.getStack(i));
+            for (int i = 0; i < 9; i++) hotbar.add(inv.getItem(i));
+            for (int i = 9; i < 18; i++) row1.add(inv.getItem(i));
+            for (int i = 18; i < 27; i++) row2.add(inv.getItem(i));
+            for (int i = 27; i < 36; i++) row3.add(inv.getItem(i));
 
             // Rotate
             if (!reversed) {
                 for (int i = 0; i < 9; i++) {
-                    inv.setStack(i, row3.get(i));       // hotbar <- row3
-                    inv.setStack(i + 9, hotbar.get(i)); // row1 <- hotbar
-                    inv.setStack(i + 18, row1.get(i));  // row2 <- row1
-                    inv.setStack(i + 27, row2.get(i));  // row3 <- row2
+                    inv.setItem(i, row3.get(i));       // hotbar <- row3
+                    inv.setItem(i + 9, hotbar.get(i)); // row1 <- hotbar
+                    inv.setItem(i + 18, row1.get(i));  // row2 <- row1
+                    inv.setItem(i + 27, row2.get(i));  // row3 <- row2
                 }
             } else {
                 for (int i = 0; i < 9; i++) {
-                    inv.setStack(i, row1.get(i)); // hotbar <- row1
-                    inv.setStack(i + 9, row2.get(i)); // row1 <- row2
-                    inv.setStack(i + 18, row3.get(i)); // row2 <- row3
-                    inv.setStack(i + 27, hotbar.get(i)); // row3 <- hotbar
+                    inv.setItem(i, row1.get(i)); // hotbar <- row1
+                    inv.setItem(i + 9, row2.get(i)); // row1 <- row2
+                    inv.setItem(i + 18, row3.get(i)); // row2 <- row3
+                    inv.setItem(i + 27, hotbar.get(i)); // row3 <- hotbar
                 }
             }
 
-            player.currentScreenHandler.sendContentUpdates();
+            player.containerMenu.broadcastChanges();
         });
     }
 
     private static void giveItemPacket(){
-        PayloadTypeRegistry.playC2S().register(GiveItemPayload.ID, GiveItemPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(GiveItemPayload.ID, GiveItemPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(GiveItemPayload.ID, (payload, context) -> {
             var player = context.player();
@@ -117,21 +120,21 @@ public class JourneyNetworking {
             var stack = payload.stack();
             boolean bl = slot < 0;
             boolean bl2 = slot >= 1 && slot <= 45;
-            boolean bl3 = stack.isEmpty() || stack.getCount() <= stack.getMaxCount();
+            boolean bl3 = stack.isEmpty() || stack.getCount() <= stack.getMaxStackSize();
 
             context.server().execute(() -> {
-                UUID uuid = player.getUuid();
-                playerCreativeItemDropCooldowns.putIfAbsent(uuid, new Cooldown(20, 1480));
-                Cooldown cooldown = playerCreativeItemDropCooldowns.get(uuid);
+                UUID uuid = player.getUUID();
+                playerCreativeItemDropCooldowns.putIfAbsent(uuid, new TickThrottler(20, 1480));
+                TickThrottler cooldown = playerCreativeItemDropCooldowns.get(uuid);
 
                 if (bl2 && bl3) {
-                    player.playerScreenHandler.getSlot(slot).setStack(stack);
-                    player.playerScreenHandler.setReceivedStack(slot, stack);
-                    player.playerScreenHandler.sendContentUpdates();
+                    player.inventoryMenu.getSlot(slot).setByPlayer(stack);
+                    player.inventoryMenu.setRemoteSlot(slot, stack);
+                    player.inventoryMenu.broadcastChanges();
                 } else if (bl && bl3) {
-                    if (cooldown.canUse()) {
+                    if (cooldown.isUnderThreshold()) {
                         cooldown.increment();
-                        player.dropItem(stack, true);
+                        player.drop(stack, true);
                     } else {
                         LOGGER.warn("Player {} was dropping items too fast in journey mode, ignoring.", player.getName().getString());
                     }
@@ -141,7 +144,7 @@ public class JourneyNetworking {
     }
 
     private static void unlockItemPacket() {
-        PayloadTypeRegistry.playC2S().register(UnlockItemPayload.ID, UnlockItemPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(UnlockItemPayload.ID, UnlockItemPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(UnlockItemPayload.ID, (payload, context) -> {
             var player = context.player();
@@ -152,7 +155,7 @@ public class JourneyNetworking {
                 PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
                 boolean r = playerState.unlockItem(item);
 
-                ServerPlayerEntity playerEntity = server.getPlayerManager().getPlayer(player.getUuid());
+                ServerPlayer playerEntity = server.getPlayerList().getPlayer(player.getUUID());
                 server.execute(() -> {
                     ServerPlayNetworking.send(playerEntity, new SyncUnlockedItemsPayload(playerState));
                 });
@@ -161,16 +164,16 @@ public class JourneyNetworking {
     }
 
     private static void trashCanPacket() {
-        PayloadTypeRegistry.playC2S().register(TrashCanPayload.ID, TrashCanPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(TrashCanPayload.ID, TrashCanPayload.CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(TrashCanPayload.ID, (payload, context) -> {
-           PlayerEntity player = context.player();
+           Player player = context.player();
            MinecraftServer server = context.server();
            context.server().execute(() -> {
                TrashcanInventory inv = TrashcanServerStorage.get(player);
                ItemStack stack = payload.stack();
-               inv.setStack(0, stack);
-               ServerPlayerEntity playerEntity = server.getPlayerManager().getPlayer(player.getUuid());
+               inv.setItem(0, stack);
+               ServerPlayer playerEntity = server.getPlayerList().getPlayer(player.getUUID());
                ServerPlayNetworking.send(playerEntity, new SyncTrashCanPayload(stack));
            });
         });
@@ -178,31 +181,31 @@ public class JourneyNetworking {
 
     private static void unlockItemCommandEvent() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-           dispatcher.register(CommandManager.literal("unlockitem")
+           dispatcher.register(Commands.literal("unlockitem")
                    .requires(src -> {
                        var player = src.getPlayer();
                        return player != null &&
                                src.getServer() != null &&
-                               src.getServer().getPlayerManager().isOperator(src.getPlayer().getPlayerConfigEntry());
+                               src.getServer().getPlayerList().isOp(src.getPlayer().nameAndId());
                    })
-                   .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(registryAccess))
+                   .then(Commands.argument("item", ItemArgument.item(registryAccess))
                            .executes(JourneyNetworking::unlockItemCommand)));
         });
     }
 
-    private static int unlockItemCommand(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-        ServerCommandSource source = ctx.getSource();
-        ServerPlayerEntity player = ctx.getSource().getPlayer();
+    private static int unlockItemCommand(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        CommandSourceStack source = ctx.getSource();
+        ServerPlayer player = ctx.getSource().getPlayer();
 
-        ItemStack unlockStack = ItemStackArgumentType.getItemStackArgument(ctx, "item").createStack(1, false);
+        ItemStack unlockStack = ItemArgument.getItem(ctx, "item").createItemStack(1);
 
         StateSaverAndLoader state = StateSaverAndLoader.getServerState(source.getServer());
         PlayerUnlocksData playerState = StateSaverAndLoader.getPlayerState(player);
 
         if (playerState.unlockItem(unlockStack)) {
-            player.sendMessage(Text.translatable("item.journeycreative.research_certificate.unlocked", unlockStack.getItem().getName()), true);
+            player.sendOverlayMessage(Component.translatable("item.journeycreative.research_certificate.unlocked", unlockStack.getItem().components().getOrDefault(DataComponents.ITEM_NAME, CommonComponents.EMPTY)));
         } else {
-            player.sendMessage(Text.translatable("item.journeycreative.research_certificate.already_unlocked", unlockStack.getItem().getName()), true);
+            player.sendOverlayMessage(Component.translatable("item.journeycreative.research_certificate.already_unlocked", unlockStack.getItem().components().getOrDefault(DataComponents.ITEM_NAME, CommonComponents.EMPTY)));
         }
 
         source.getServer().execute(() -> {
@@ -226,110 +229,110 @@ public class JourneyNetworking {
         });
     }
 
-    public static void syncResearchItemsUnlocked(ServerPlayerEntity player) {
+    public static void syncResearchItemsUnlocked(ServerPlayer player) {
         boolean value = player
-                .getEntityWorld()
+                .level()
                         .getGameRules()
-                                .getValue(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
-        player.getEntityWorld().getServer().execute(() -> {
+                                .get(Journeycreative.RESEARCH_ITEMS_UNLOCKED);
+        player.level().getServer().execute(() -> {
             ServerPlayNetworking.send(player, new SyncResearchItemsUnlockRulePayload(value));
         });
     }
 
-    public record GiveItemPayload(int slot, ItemStack stack) implements CustomPayload {
-        public static final CustomPayload.Id<GiveItemPayload> ID =
-                new CustomPayload.Id<>(GIVE_ITEM);
+    public record GiveItemPayload(int slot, ItemStack stack) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<GiveItemPayload> ID =
+                new CustomPacketPayload.Type<>(GIVE_ITEM);
 
-        public static final PacketCodec<RegistryByteBuf, GiveItemPayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.INTEGER, GiveItemPayload::slot, ItemStack.OPTIONAL_PACKET_CODEC, GiveItemPayload::stack, GiveItemPayload::new);
+        public static final StreamCodec<RegistryFriendlyByteBuf, GiveItemPayload> CODEC =
+                StreamCodec.composite(ByteBufCodecs.INT, GiveItemPayload::slot, ItemStack.OPTIONAL_STREAM_CODEC, GiveItemPayload::stack, GiveItemPayload::new);
 
         @Override
-        public CustomPayload.Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record UnlockItemPayload(ItemStack stack) implements CustomPayload {
-        public static final CustomPayload.Id<UnlockItemPayload> ID =
-                new CustomPayload.Id(UNLOCK_ITEM);
-        public static final PacketCodec<RegistryByteBuf, UnlockItemPayload> CODEC =
-                PacketCodec.tuple(ItemStack.PACKET_CODEC, UnlockItemPayload::stack, UnlockItemPayload::new);
+    public record UnlockItemPayload(ItemStack stack) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<UnlockItemPayload> ID =
+                new CustomPacketPayload.Type(UNLOCK_ITEM);
+        public static final StreamCodec<RegistryFriendlyByteBuf, UnlockItemPayload> CODEC =
+                StreamCodec.composite(ItemStack.STREAM_CODEC, UnlockItemPayload::stack, UnlockItemPayload::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record SyncUnlockedItemsPayload(PlayerUnlocksData playerUnlocksData) implements CustomPayload {
-        public static final CustomPayload.Id<SyncUnlockedItemsPayload> ID =
-                new CustomPayload.Id(SYNC_UNLOCKED_ITEMS);
-        public static final PacketCodec<RegistryByteBuf, SyncUnlockedItemsPayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.registryCodec(PlayerUnlocksData.PLAYER_UNLOCKS_CODEC), SyncUnlockedItemsPayload::playerUnlocksData, SyncUnlockedItemsPayload::new);
+    public record SyncUnlockedItemsPayload(PlayerUnlocksData playerUnlocksData) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<SyncUnlockedItemsPayload> ID =
+                new CustomPacketPayload.Type(SYNC_UNLOCKED_ITEMS);
+        public static final StreamCodec<RegistryFriendlyByteBuf, SyncUnlockedItemsPayload> CODEC =
+                StreamCodec.composite(ByteBufCodecs.fromCodecWithRegistries(PlayerUnlocksData.PLAYER_UNLOCKS_CODEC), SyncUnlockedItemsPayload::playerUnlocksData, SyncUnlockedItemsPayload::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record SyncResearchItemsUnlockRulePayload(boolean value) implements CustomPayload {
-        public static final CustomPayload.Id<SyncResearchItemsUnlockRulePayload> ID =
-                new CustomPayload.Id(SYNC_RESEARCH_ITEMS_UNLOCKED_RULE);
-        public static final PacketCodec<RegistryByteBuf, SyncResearchItemsUnlockRulePayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.BOOLEAN, SyncResearchItemsUnlockRulePayload::value, SyncResearchItemsUnlockRulePayload::new);
+    public record SyncResearchItemsUnlockRulePayload(boolean value) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<SyncResearchItemsUnlockRulePayload> ID =
+                new CustomPacketPayload.Type(SYNC_RESEARCH_ITEMS_UNLOCKED_RULE);
+        public static final StreamCodec<RegistryFriendlyByteBuf, SyncResearchItemsUnlockRulePayload> CODEC =
+                StreamCodec.composite(ByteBufCodecs.BOOL, SyncResearchItemsUnlockRulePayload::value, SyncResearchItemsUnlockRulePayload::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record RotateItemsPayload(boolean reversed) implements CustomPayload {
-        public static final CustomPayload.Id<RotateItemsPayload> ID =
-                new CustomPayload.Id(ROTATE_ITEMS);
-        public static final PacketCodec<RegistryByteBuf, RotateItemsPayload> CODEC =
-                PacketCodec.tuple(PacketCodecs.BOOLEAN, RotateItemsPayload::reversed, RotateItemsPayload::new);
+    public record RotateItemsPayload(boolean reversed) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<RotateItemsPayload> ID =
+                new CustomPacketPayload.Type(ROTATE_ITEMS);
+        public static final StreamCodec<RegistryFriendlyByteBuf, RotateItemsPayload> CODEC =
+                StreamCodec.composite(ByteBufCodecs.BOOL, RotateItemsPayload::reversed, RotateItemsPayload::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record TrashCanPayload(ItemStack stack) implements CustomPayload {
-        public static final CustomPayload.Id<TrashCanPayload> ID =
-                new CustomPayload.Id(TRASH_CAN);
-        public static final PacketCodec<RegistryByteBuf, TrashCanPayload> CODEC =
-                PacketCodec.tuple(ItemStack.OPTIONAL_PACKET_CODEC, TrashCanPayload::stack, TrashCanPayload::new);
+    public record TrashCanPayload(ItemStack stack) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<TrashCanPayload> ID =
+                new CustomPacketPayload.Type(TRASH_CAN);
+        public static final StreamCodec<RegistryFriendlyByteBuf, TrashCanPayload> CODEC =
+                StreamCodec.composite(ItemStack.OPTIONAL_STREAM_CODEC, TrashCanPayload::stack, TrashCanPayload::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record SyncTrashCanPayload(ItemStack stack) implements CustomPayload {
-        public static final CustomPayload.Id<SyncTrashCanPayload> ID =
-                new CustomPayload.Id(SYNC_TRASH_CAN);
-        public static final PacketCodec<RegistryByteBuf, SyncTrashCanPayload> CODEC =
-                PacketCodec.tuple(ItemStack.OPTIONAL_PACKET_CODEC, SyncTrashCanPayload::stack, SyncTrashCanPayload::new);
+    public record SyncTrashCanPayload(ItemStack stack) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<SyncTrashCanPayload> ID =
+                new CustomPacketPayload.Type(SYNC_TRASH_CAN);
+        public static final StreamCodec<RegistryFriendlyByteBuf, SyncTrashCanPayload> CODEC =
+                StreamCodec.composite(ItemStack.OPTIONAL_STREAM_CODEC, SyncTrashCanPayload::stack, SyncTrashCanPayload::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }
 
-    public record ItemWarningMessage(Text warningMessage) implements CustomPayload {
-        public static final CustomPayload.Id<ItemWarningMessage> ID =
-                new CustomPayload.Id(SEND_ITEM_WARNING_MESSAGE);
+    public record ItemWarningMessage(Component warningMessage) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<ItemWarningMessage> ID =
+                new CustomPacketPayload.Type(SEND_ITEM_WARNING_MESSAGE);
 
-        public static final PacketCodec<RegistryByteBuf, ItemWarningMessage> CODEC =
-                PacketCodec.tuple(TextCodecs.PACKET_CODEC, ItemWarningMessage::warningMessage, ItemWarningMessage::new);
+        public static final StreamCodec<RegistryFriendlyByteBuf, ItemWarningMessage> CODEC =
+                StreamCodec.composite(ComponentSerialization.STREAM_CODEC, ItemWarningMessage::warningMessage, ItemWarningMessage::new);
 
         @Override
-        public Id<? extends CustomPayload> getId() {
+        public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
             return ID;
         }
     }

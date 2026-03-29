@@ -1,81 +1,86 @@
 package mod.journeycreative.blocks;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class ResearchVesselBlock extends BlockWithEntity {
-    public static final BooleanProperty OPENED = BooleanProperty.of("opened");
+public class ResearchVesselBlock extends BaseEntityBlock {
+    public static final BooleanProperty OPENED = BooleanProperty.create("opened");
 
-    public ResearchVesselBlock(Settings settings) {
+    public ResearchVesselBlock(BlockBehaviour.Properties settings) {
         super(settings);
 
-        setDefaultState(getDefaultState().with(OPENED, false));
+        registerDefaultState(defaultBlockState().setValue(OPENED, false));
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
-        return createCodec(ResearchVesselBlock::new);
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return simpleCodec(ResearchVesselBlock::new);
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new ResearchVesselBlockEntity(pos, state);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (!world.isClient()) {
-            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!world.isClientSide()) {
+            MenuProvider screenHandlerFactory = state.getMenuProvider(world, pos);
 
             if (screenHandlerFactory != null) {
-                player.openHandledScreen(screenHandlerFactory);
+                player.openMenu(screenHandlerFactory);
             }
         }
 
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public boolean hasComparatorOutput(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return false;
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof ResearchVesselBlockEntity researchVesselBlockEntity) {
-            return VoxelShapes.cuboid(researchVesselBlockEntity.getBoundingBox(state));
+            return Shapes.create(researchVesselBlockEntity.getBoundingBox(state));
         } else {
-            return Block.createCuboidShape(2, 0, 2, 14, 5, 14);
+            return Block.box(2, 0, 2, 14, 5, 14);
         }
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return validateTicker(type, ModBlocks.RESEARCH_VESSEL_BLOCK_ENTITY, ResearchVesselBlockEntity::tick);
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+        return createTickerHelper(type, ModBlocks.RESEARCH_VESSEL_BLOCK_ENTITY, ResearchVesselBlockEntity::tick);
     }
 
     @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(OPENED);
     }
 

@@ -2,11 +2,11 @@ package mod.journeycreative.blocks;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.entity.state.EntityRenderState;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.core.Direction;
 
 @Environment(EnvType.CLIENT)
-public class ResearchVesselEntityRenderState extends EntityRenderState {
+public class ResearchVesselEntityRenderState extends BlockEntityRenderState {
     public float openProgress;
     public Direction facing;
     public boolean showPortal;

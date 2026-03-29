@@ -13,10 +13,7 @@ import mod.journeycreative.networking.JourneyClientNetworking;
 import mod.journeycreative.screen.ModScreensClient;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
 public class JourneycreativeClient implements ClientModInitializer {
 
@@ -28,11 +25,11 @@ public class JourneycreativeClient implements ClientModInitializer {
 		JourneyClientNetworking.RegisterClientPackets();
 
 		ItemTooltipCallback.EVENT.register(((itemStack, tooltipContext, tooltipType, list) -> {
-			if (itemStack.isOf(ModItems.RESEARCH_CERTIFICATE)) {
+			if (itemStack.is(ModItems.RESEARCH_CERTIFICATE)) {
 				ResearchCertificateItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
-			} else if (itemStack.isOf(ModBlocks.RESEARCH_VESSEL_BLOCK_ITEM)) {
+			} else if (itemStack.is(ModBlocks.RESEARCH_VESSEL_BLOCK_ITEM)) {
 				ResearchVesselBlockItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
-			} else if (itemStack.isOf(ModBlocks.ENDER_ARCHIVE_BLOCK_ITEM)) {
+			} else if (itemStack.is(ModBlocks.ENDER_ARCHIVE_BLOCK_ITEM)) {
 				EnderArchiveBlockItem.appendTooltip(itemStack, tooltipContext, list, tooltipType);
 			}
 		}));
@@ -41,7 +38,7 @@ public class JourneycreativeClient implements ClientModInitializer {
 		ModModelLayers.initialize();
 		ModKeyBindings.register();
 
-		BlockEntityRendererFactories.register(ModBlocks.RESEARCH_VESSEL_BLOCK_ENTITY, ResearchVesselEntityRenderer::new);
-		BlockEntityRendererFactories.register(ModBlocks.ENDER_ARCHIVE_BLOCK_ENTITY, EnderArchiveEntityRenderer::new);
+		BlockEntityRenderers.register(ModBlocks.RESEARCH_VESSEL_BLOCK_ENTITY, ResearchVesselEntityRenderer::new);
+		BlockEntityRenderers.register(ModBlocks.ENDER_ARCHIVE_BLOCK_ENTITY, EnderArchiveEntityRenderer::new);
 	}
 }

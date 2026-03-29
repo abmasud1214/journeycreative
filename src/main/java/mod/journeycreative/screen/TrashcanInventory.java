@@ -1,8 +1,8 @@
 package mod.journeycreative.screen;
 
-import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.world.SimpleContainer;
 
-public class TrashcanInventory extends SimpleInventory {
+public class TrashcanInventory extends SimpleContainer {
     public TrashcanInventory() {
         super(1);
     }

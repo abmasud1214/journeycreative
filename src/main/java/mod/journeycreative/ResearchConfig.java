@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 import java.io.Reader;
 import java.util.*;
@@ -21,7 +21,7 @@ public class ResearchConfig {
         JsonObject requirements = root.getAsJsonObject("requirements");
 
         for (Map.Entry<String, JsonElement> requirement : requirements.entrySet()) {
-            Identifier itemId = Identifier.of(requirement.getKey());
+            Identifier itemId = Identifier.parse(requirement.getKey());
             int amount = requirement.getValue().getAsInt();
 
             RESEARCH_AMOUNT_REQUIREMENTS.put(itemId, amount);
@@ -35,10 +35,10 @@ public class ResearchConfig {
         JsonObject requirements = root.getAsJsonObject("prerequisites");
 
         for (Map.Entry<String, JsonElement> requirement : requirements.entrySet()) {
-            Identifier itemId = Identifier.of(requirement.getKey());
+            Identifier itemId = Identifier.parse(requirement.getKey());
             List<Identifier> itemPrereqs = new ArrayList<>();
             for (JsonElement element : requirement.getValue().getAsJsonArray()) {
-                itemPrereqs.add(Identifier.of(element.getAsString()));
+                itemPrereqs.add(Identifier.parse(element.getAsString()));
             }
 
             RESEARCH_PREREQUISITES.put(itemId, itemPrereqs);
@@ -49,7 +49,7 @@ public class ResearchConfig {
         JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
         JsonArray prohibited = root.getAsJsonArray("unresearchable");
         for (JsonElement element : prohibited) {
-            RESEARCH_PROHIBITED.add(Identifier.of(element.getAsString()));
+            RESEARCH_PROHIBITED.add(Identifier.parse(element.getAsString()));
         }
     }
 
@@ -57,7 +57,7 @@ public class ResearchConfig {
         JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
         JsonArray blocked = root.getAsJsonArray("blocked");
         for (JsonElement element : blocked) {
-            RESEARCH_BLOCKED.add(Identifier.of(element.getAsString()));
+            RESEARCH_BLOCKED.add(Identifier.parse(element.getAsString()));
         }
     }
 }

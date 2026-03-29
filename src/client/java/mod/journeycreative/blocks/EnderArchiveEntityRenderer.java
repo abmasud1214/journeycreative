@@ -1,31 +1,34 @@
 package mod.journeycreative.blocks;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import mod.journeycreative.Journeycreative;
-import net.minecraft.client.render.*;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.block.entity.state.BlockEntityRenderState;
-import net.minecraft.client.render.command.ModelCommandRenderer;
-import net.minecraft.client.render.command.OrderedRenderCommandQueue;
-import net.minecraft.client.render.entity.model.LoadedEntityModels;
-import net.minecraft.client.render.state.CameraRenderState;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArchiveBlockEntity, EnderArchiveEntityRenderer.EnderArchiveRenderState> {
-    private static final Identifier TEXTURE = Identifier.of(Journeycreative.MOD_ID, "textures/block/ender_archive.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "textures/block/ender_archive.png");
 
-    public EnderArchiveEntityRenderer(BlockEntityRendererFactory.Context ctx) {
-        this(ctx.loadedEntityModels());
+    public EnderArchiveEntityRenderer(BlockEntityRendererProvider.Context ctx) {
+        this(ctx.entityModelSet());
     }
 
-    public EnderArchiveEntityRenderer(LoadedEntityModels models) {
+    public EnderArchiveEntityRenderer(EntityModelSet models) {
 
     }
 
@@ -35,21 +38,21 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
     }
 
     @Override
-    public void updateRenderState(EnderArchiveBlockEntity blockEntity, EnderArchiveRenderState state, float tickProgress, Vec3d cameraPos, @Nullable ModelCommandRenderer.CrumblingOverlayCommand crumblingOverlay) {
-        BlockEntityRenderState.updateBlockEntityRenderState(blockEntity, state, crumblingOverlay);
+    public void extractRenderState(EnderArchiveBlockEntity blockEntity, EnderArchiveRenderState state, float tickProgress, Vec3 cameraPos, @Nullable ModelFeatureRenderer.CrumblingOverlay crumblingOverlay) {
+        BlockEntityRenderState.extractBase(blockEntity, state, crumblingOverlay);
 
-        state.pos = blockEntity.getPos();
-        state.facing = (Direction) blockEntity.getCachedState().get(EnderArchiveBlock.FACING, Direction.NORTH);
+        state.blockPos = blockEntity.getBlockPos();
+        state.facing = (Direction) blockEntity.getBlockState().getValueOrElse(EnderArchiveBlock.FACING, Direction.NORTH);
         state.g = blockEntity.getBookTransparency(tickProgress);
 
-        state.lightmapCoordinates = WorldRenderer.getLightmapCoordinates(
-                blockEntity.getWorld(),
-                blockEntity.getPos()
+        state.lightCoords = LevelRenderer.getLightCoords(
+                blockEntity.getLevel(),
+                blockEntity.getBlockPos()
         );
     }
 
     @Override
-    public void render(EnderArchiveRenderState state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState camera) {
+    public void submit(EnderArchiveRenderState state, PoseStack matrices, SubmitNodeCollector queue, CameraRenderState camera) {
         float rotationDegrees = switch (state.facing) {
             case NORTH -> 0F;
             case SOUTH -> 180F;
@@ -58,17 +61,17 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
             default -> 0F;
         };
 
-        matrices.push();
+        matrices.pushPose();
         matrices.translate(0.5, 0.5, 0.5);
-        matrices.multiply(new Quaternionf().rotateY((float)Math.toRadians(rotationDegrees)));
-        matrices.multiply(new Quaternionf().rotateZ((float)Math.toRadians(180)));
+        matrices.mulPose(new Quaternionf().rotateY((float)Math.toRadians(rotationDegrees)));
+        matrices.mulPose(new Quaternionf().rotateZ((float)Math.toRadians(180)));
         matrices.translate(-0.5, -0.5, -0.5);
 
-        queue.submitCustom(
+        queue.submitCustomGeometry(
                 matrices,
-                RenderLayers.entityTranslucent(TEXTURE),
+                RenderTypes.entityTranslucent(TEXTURE),
                 (entry, consumer) -> {
-                    Vec3i normalVec = state.facing.getVector();
+                    Vec3i normalVec = state.facing.getUnitVec3i();
                     for (int i = 0; i < 6; i++) {
                         renderbook(
                                 entry,
@@ -76,54 +79,54 @@ public class EnderArchiveEntityRenderer implements BlockEntityRenderer<EnderArch
                                 renderPos(i),
                                 uvRanges(i),
                                 state.g[i],
-                                state.lightmapCoordinates,
+                                state.lightCoords,
                                 normalVec
                         );
                     }
                 }
         );
 
-        matrices.pop();
+        matrices.popPose();
 
-        queue.submitCustom(
+        queue.submitCustomGeometry(
                 matrices,
-                RenderLayers.endPortal(),
+                RenderTypes.endPortal(),
                 (entry, consumer) -> {
-                    Matrix4f model = entry.getPositionMatrix();
-                    consumer.vertex(model, No16(1), No16(15.5f), No16(15));
-                    consumer.vertex(model, No16(15), No16(15.5f), No16(15));
-                    consumer.vertex(model, No16(15), No16(15.5f), No16(1));
-                    consumer.vertex(model, No16(1), No16(15.5f), No16(1));
+                    Matrix4f model = entry.pose();
+                    consumer.addVertex(model, No16(1), No16(15.5f), No16(15));
+                    consumer.addVertex(model, No16(15), No16(15.5f), No16(15));
+                    consumer.addVertex(model, No16(15), No16(15.5f), No16(1));
+                    consumer.addVertex(model, No16(1), No16(15.5f), No16(1));
                 }
         );
     }
 
-    private void renderbook(MatrixStack.Entry entry, VertexConsumer consumer, float[] renderPos, float[] uvRanges, float transparency, int light, Vec3i normal) {
-        Matrix4f model = entry.getPositionMatrix();
-        consumer.vertex(model, renderPos[0], renderPos[1], -0.01F)
-                .color(1, 1, 1, transparency)
-                .texture(uvRanges[0], uvRanges[1])
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light)
-                .normal(entry, normal.getX(), normal.getY(), normal.getZ());
-        consumer.vertex(model, renderPos[2], renderPos[1], -0.01F)
-                .color(1, 1, 1, transparency)
-                .texture(uvRanges[2], uvRanges[1])
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light)
-                .normal(entry, normal.getX(), normal.getY(), normal.getZ());
-        consumer.vertex(model, renderPos[2], renderPos[3], -0.01F)
-                .color(1, 1, 1, transparency)
-                .texture(uvRanges[2], uvRanges[3])
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light)
-                .normal(entry, normal.getX(), normal.getY(), normal.getZ());
-        consumer.vertex(model, renderPos[0], renderPos[3], -0.01F)
-                .color(1, 1, 1, transparency)
-                .texture(uvRanges[0], uvRanges[3])
-                .overlay(OverlayTexture.DEFAULT_UV)
-                .light(light)
-                .normal(entry, normal.getX(), normal.getY(), normal.getZ());
+    private void renderbook(PoseStack.Pose entry, VertexConsumer consumer, float[] renderPos, float[] uvRanges, float transparency, int light, Vec3i normal) {
+        Matrix4f model = entry.pose();
+        consumer.addVertex(model, renderPos[0], renderPos[1], -0.01F)
+                .setColor(1, 1, 1, transparency)
+                .setUv(uvRanges[0], uvRanges[1])
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(entry, normal.getX(), normal.getY(), normal.getZ());
+        consumer.addVertex(model, renderPos[2], renderPos[1], -0.01F)
+                .setColor(1, 1, 1, transparency)
+                .setUv(uvRanges[2], uvRanges[1])
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(entry, normal.getX(), normal.getY(), normal.getZ());
+        consumer.addVertex(model, renderPos[2], renderPos[3], -0.01F)
+                .setColor(1, 1, 1, transparency)
+                .setUv(uvRanges[2], uvRanges[3])
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(entry, normal.getX(), normal.getY(), normal.getZ());
+        consumer.addVertex(model, renderPos[0], renderPos[3], -0.01F)
+                .setColor(1, 1, 1, transparency)
+                .setUv(uvRanges[0], uvRanges[3])
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(entry, normal.getX(), normal.getY(), normal.getZ());
     }
 
     private float[] renderPos(int bookNumber) {

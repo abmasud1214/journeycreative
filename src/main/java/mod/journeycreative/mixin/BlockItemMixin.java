@@ -1,7 +1,7 @@
 package mod.journeycreative.mixin;
 
 import mod.journeycreative.blocks.ResearchVesselBlock;
-import net.minecraft.item.BlockItem;
+import net.minecraft.world.item.BlockItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class BlockItemMixin {
 
     @Inject(
-            method = "canBeNested",
+            method = "canFitInsideContainerItems",
             at = @At("HEAD"),
             cancellable = true
     )

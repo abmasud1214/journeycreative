@@ -2,17 +2,18 @@ package mod.journeycreative.networking;
 
 import com.mojang.serialization.Codec;
 import mod.journeycreative.Journeycreative;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.PersistentState;
-import net.minecraft.world.PersistentStateType;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 import java.util.HashMap;
 import java.util.UUID;
 
-public class StateSaverAndLoader extends PersistentState {
+public class StateSaverAndLoader extends SavedData {
     public HashMap<UUID, PlayerUnlocksData> players = new HashMap<>();
 
     private StateSaverAndLoader() {
@@ -27,9 +28,9 @@ public class StateSaverAndLoader extends PersistentState {
     }
 
     public static PlayerUnlocksData getPlayerState(LivingEntity player) {
-        StateSaverAndLoader serverState = getServerState(player.getEntityWorld().getServer());
+        StateSaverAndLoader serverState = getServerState(player.level().getServer());
 
-        PlayerUnlocksData playerState = serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerUnlocksData());
+        PlayerUnlocksData playerState = serverState.players.computeIfAbsent(player.getUUID(), uuid -> new PlayerUnlocksData());
 
         return playerState;
     }
@@ -47,20 +48,20 @@ public class StateSaverAndLoader extends PersistentState {
             );
 
 
-    private static PersistentStateType<StateSaverAndLoader> type = new PersistentStateType<>(
-            (String) Journeycreative.MOD_ID,
+    private static SavedDataType<StateSaverAndLoader> type = new SavedDataType<>(
+            Identifier.fromNamespaceAndPath(Journeycreative.MOD_ID, "unlockdata"),
             StateSaverAndLoader::new,
             CODEC,
             null
     );
 
     public static StateSaverAndLoader getServerState(MinecraftServer server) {
-        ServerWorld serverWorld = server.getWorld(World.OVERWORLD);
+        ServerLevel serverWorld = server.getLevel(Level.OVERWORLD);
         assert serverWorld != null;
 
-        StateSaverAndLoader state = serverWorld.getPersistentStateManager().getOrCreate(type);
+        StateSaverAndLoader state = serverWorld.getDataStorage().computeIfAbsent(type);
 
-        state.markDirty();
+        state.setDirty();
 
         return state;
     }

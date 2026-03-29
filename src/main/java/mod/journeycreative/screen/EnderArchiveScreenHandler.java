@@ -4,99 +4,95 @@ import mod.journeycreative.ResearchConfig;
 import mod.journeycreative.blocks.ModBlocks;
 import mod.journeycreative.items.ModComponents;
 import mod.journeycreative.items.ModItems;
-import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RecipeManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.ForgingScreenHandler;
-import net.minecraft.screen.Property;
-import net.minecraft.screen.ScreenHandlerContext;
-import net.minecraft.screen.slot.ForgingSlotsManager;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.crafting.RecipeAccess;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class EnderArchiveScreenHandler extends ForgingScreenHandler {
-    private final World world;
-    private final Property invalidRecipe;
+public class EnderArchiveScreenHandler extends ItemCombinerMenu {
+    private final Level world;
+    private final DataSlot invalidRecipe;
     public enum researchInvalidReason {
         VALID,
         INSUFFICIENT,
         BLOCKED,
         PROHIBITED
     }
-    private final Property reason;
+    private final DataSlot reason;
 
 
-    public EnderArchiveScreenHandler(int syncId, PlayerInventory inventory) {
-        this(syncId, inventory, ScreenHandlerContext.EMPTY);
+    public EnderArchiveScreenHandler(int syncId, Inventory inventory) {
+        this(syncId, inventory, ContainerLevelAccess.NULL);
     }
 
-    public EnderArchiveScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
-        this(syncId, playerInventory, context, playerInventory.player.getEntityWorld());
+    public EnderArchiveScreenHandler(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
+        this(syncId, playerInventory, context, playerInventory.player.level());
     }
 
-    private EnderArchiveScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context, World world) {
-        super(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, syncId, playerInventory, context, createForgingSlotsManager(world.getRecipeManager()));
-        this.invalidRecipe = Property.create();
-        this.reason = Property.create();
+    private EnderArchiveScreenHandler(int syncId, Inventory playerInventory, ContainerLevelAccess context, Level world) {
+        super(ModScreens.ENDER_ARCHIVE_SCREEN_HANDLER, syncId, playerInventory, context, createForgingSlotsManager(world.recipeAccess()));
+        this.invalidRecipe = DataSlot.standalone();
+        this.reason = DataSlot.standalone();
         this.world = world;
-        this.addProperty(this.invalidRecipe).set(0);
-        this.addProperty(this.reason).set(0);
+        this.addDataSlot(this.invalidRecipe).set(0);
+        this.addDataSlot(this.reason).set(0);
     }
 
-    private static ForgingSlotsManager createForgingSlotsManager(RecipeManager recipeManager) {
-        ForgingSlotsManager.Builder builder = ForgingSlotsManager.builder();
-        builder = builder.input(0, 53, 33, EnderArchiveScreenHandler::canUseSlot);
-        return builder.output(1, 107, 33).build();
+    private static ItemCombinerMenuSlotDefinition createForgingSlotsManager(RecipeAccess recipeManager) {
+        ItemCombinerMenuSlotDefinition.Builder builder = ItemCombinerMenuSlotDefinition.create();
+        builder = builder.withSlot(0, 53, 33, EnderArchiveScreenHandler::canUseSlot);
+        return builder.withResultSlot(1, 107, 33).build();
     }
 
-    protected boolean canUse(BlockState state) {
-        return state.isOf(ModBlocks.ENDER_ARCHIVE_BLOCK);
+    protected boolean isValidBlock(BlockState state) {
+        return state.is(ModBlocks.ENDER_ARCHIVE_BLOCK);
     }
 
-    protected void onTakeOutput(PlayerEntity player, ItemStack stack) {
-        stack.onCraftByPlayer(player, stack.getCount());
+    protected void onTake(Player player, ItemStack stack) {
+        stack.onCraftedBy(player, stack.getCount());
         this.decrementStack(0);
-        this.context.run((world, pos) -> {
-            world.syncWorldEvent(1044, pos, 0);
+        this.access.execute((world, pos) -> {
+            world.levelEvent(1044, pos, 0);
         });
     }
 
     private void decrementStack(int slot) {
-        ItemStack itemStack = this.input.getStack(slot);
+        ItemStack itemStack = this.inputSlots.getItem(slot);
         if (!itemStack.isEmpty()) {
-            itemStack.decrement(1);
-            this.input.setStack(slot, itemStack);
+            itemStack.shrink(1);
+            this.inputSlots.setItem(slot, itemStack);
         }
     }
 
-    public void onContentChanged(Inventory inventory) {
-        super.onContentChanged(inventory);
-        if (this.world instanceof ServerWorld) {
-            boolean bl = this.getSlot(0).hasStack() && !this.getSlot(this.getResultSlotIndex()).hasStack();
+    public void slotsChanged(Container inventory) {
+        super.slotsChanged(inventory);
+        if (this.world instanceof ServerLevel) {
+            boolean bl = this.getSlot(0).hasItem() && !this.getSlot(this.getResultSlot()).hasItem();
             this.invalidRecipe.set(bl ? 1 : 0);
         }
     }
 
-    public void updateResult() {
-        if (this.world instanceof ServerWorld serverWorld && isValidIngedient(this.input.getStack(0))) {
-            ItemStack input = this.input.getStack(0);
-            boolean exists = input.contains(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT);
-            boolean container_exists = input.contains(DataComponentTypes.CONTAINER);
+    public void createResult() {
+        if (this.world instanceof ServerLevel serverWorld && isValidIngedient(this.inputSlots.getItem(0))) {
+            ItemStack input = this.inputSlots.getItem(0);
+            boolean exists = input.has(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT);
+            boolean container_exists = input.has(DataComponents.CONTAINER);
             if (exists && container_exists) {
                 ItemStack target = input.get(ModComponents.RESEARCH_VESSEL_TARGET_COMPONENT);
-                ContainerComponent container = input.get(DataComponentTypes.CONTAINER);
+                ItemContainerContents container = input.get(DataComponents.CONTAINER);
 
                 boolean full = fullContainer(target, container);
-                boolean canCreateCertificate = !ResearchConfig.RESEARCH_BLOCKED.contains(Registries.ITEM.getId(target.getItem()));
-                boolean canResearchItem = !ResearchConfig.RESEARCH_PROHIBITED.contains(Registries.ITEM.getId(target.getItem()));
+                boolean canCreateCertificate = !ResearchConfig.RESEARCH_BLOCKED.contains(BuiltInRegistries.ITEM.getKey(target.getItem()));
+                boolean canResearchItem = !ResearchConfig.RESEARCH_PROHIBITED.contains(BuiltInRegistries.ITEM.getKey(target.getItem()));
 
                 researchInvalidReason r = researchInvalidReason.VALID;
                 if (!canCreateCertificate) {
@@ -108,22 +104,22 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
                 } else if (!target.isEmpty()) {
                     ItemStack output = new ItemStack(ModItems.RESEARCH_CERTIFICATE, 1);
                     output.set(ModComponents.RESEARCH_ITEM_COMPONENT, target);
-                    this.output.setStack(0, output);
+                    this.resultSlots.setItem(0, output);
                     this.reason.set(0);
                     return;
                 }
                 this.reason.set(r.ordinal());
             }
         }
-        this.output.setStack(0, ItemStack.EMPTY);
+        this.resultSlots.setItem(0, ItemStack.EMPTY);
     }
 
-    public boolean canInsertIntoSlot(ItemStack stack, Slot slot) {
-        return slot.inventory != this.output && super.canInsertIntoSlot(stack, slot);
+    public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
+        return slot.container != this.resultSlots && super.canTakeItemForPickAll(stack, slot);
     }
 
     public boolean isValidIngedient(ItemStack stack) {
-        if (EnderArchiveScreenHandler.canUseSlot(stack) && this.getSlot(0).hasStack()) {
+        if (EnderArchiveScreenHandler.canUseSlot(stack) && this.getSlot(0).hasItem()) {
             return true;
         }
         return false;
@@ -140,12 +136,12 @@ public class EnderArchiveScreenHandler extends ForgingScreenHandler {
         return false;
     }
 
-    private static boolean fullContainer(ItemStack target, ContainerComponent container) {
-        Iterable<ItemStack> containerStacks = container.iterateNonEmpty();
-        int default_lim = (int) Math.ceil(27 * target.getMaxCount() * ResearchConfig.DEFAULT_AMOUNT_ADJUSTMENT);
+    private static boolean fullContainer(ItemStack target, ItemContainerContents container) {
+        Iterable<ItemStack> containerStacks = container.nonEmptyItemCopyStream().toList();
+        int default_lim = (int) Math.ceil(27 * target.getMaxStackSize() * ResearchConfig.DEFAULT_AMOUNT_ADJUSTMENT);
         default_lim = Math.max(1, default_lim);
-        int full = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(Registries.ITEM.getId(target.getItem()),default_lim);
-        full = Math.min(full, 27 * target.getMaxCount());
+        int full = ResearchConfig.RESEARCH_AMOUNT_REQUIREMENTS.getOrDefault(BuiltInRegistries.ITEM.getKey(target.getItem()),default_lim);
+        full = Math.min(full, 27 * target.getMaxStackSize());
         for (ItemStack stack : containerStacks) {
             full -= stack.getCount();
         }

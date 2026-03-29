@@ -1,22 +1,22 @@
 package mod.journeycreative.screen;
 
 import mod.journeycreative.networking.JourneyClientNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerListener;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerListener;
+import net.minecraft.world.item.ItemStack;
 
-public class JourneyInventoryListener implements ScreenHandlerListener {
-    private final MinecraftClient client;
+public class JourneyInventoryListener implements ContainerListener {
+    private final Minecraft client;
 
-    public JourneyInventoryListener(MinecraftClient client) {
+    public JourneyInventoryListener(Minecraft client) {
         this.client = client;
     }
 
-    public void onSlotUpdate(ScreenHandler handler, int slotId, ItemStack stack) {
+    public void slotChanged(AbstractContainerMenu handler, int slotId, ItemStack stack) {
         JourneyClientNetworking.clickJourneyStack(stack, slotId);
     }
 
-    public void onPropertyUpdate(ScreenHandler handler, int property, int value) {
+    public void dataChanged(AbstractContainerMenu handler, int property, int value) {
     }
 }

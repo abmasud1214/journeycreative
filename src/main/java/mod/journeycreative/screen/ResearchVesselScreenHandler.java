@@ -7,56 +7,52 @@ import mod.journeycreative.networking.JourneyNetworking;
 import mod.journeycreative.networking.PlayerUnlocksData;
 import mod.journeycreative.networking.StateSaverAndLoader;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.Property;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.text.Texts;
-import net.minecraft.util.ClickType;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.crash.CrashException;
-import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.CrashReportSection;
-import net.minecraft.world.World;
+import net.minecraft.CrashReport;
+import net.minecraft.CrashReportCategory;
+import net.minecraft.ReportedException;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResearchVesselScreenHandler extends ScreenHandler {
+public class ResearchVesselScreenHandler extends AbstractContainerMenu {
     public final ResearchVesselInventory inventory;
-    private DefaultedList<ResearchVesselSlot> vesselSlots = DefaultedList.of();
-    private final Property quantity;
-    private final Property capacity;
-    private final Property reason;
-    private final PlayerEntity player;
-    private final World world;
-    private Text warning;
+    private NonNullList<ResearchVesselSlot> vesselSlots = NonNullList.create();
+    private final DataSlot quantity;
+    private final DataSlot capacity;
+    private final DataSlot reason;
+    private final Player player;
+    private final Level world;
+    private Component warning;
     private boolean warningSent = false;
 
     private ItemStack previousTarget;
 
-    public ResearchVesselScreenHandler(int syncId, PlayerInventory playerInventory) {
+    public ResearchVesselScreenHandler(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ResearchVesselInventory.ofSize(27));
     }
 
-    public ResearchVesselScreenHandler(int syncId, PlayerInventory playerInventory, ResearchVesselInventory inventory) {
+    public ResearchVesselScreenHandler(int syncId, Inventory playerInventory, ResearchVesselInventory inventory) {
         super(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER, syncId);
-        checkSize(inventory, 27);
+        checkContainerSize(inventory, 27);
         this.inventory = inventory;
         player = playerInventory.player;
-        world = playerInventory.player.getEntityWorld();
+        world = playerInventory.player.level();
 
-        inventory.onOpen(playerInventory.player);
+        inventory.startOpen(playerInventory.player);
 
         int m;
         int l;
@@ -71,41 +67,41 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
 
         this.addPlayerSlots(playerInventory, 8, 84);
 
-        this.quantity = Property.create();
-        this.capacity = Property.create();
-        this.reason = Property.create();
+        this.quantity = DataSlot.standalone();
+        this.capacity = DataSlot.standalone();
+        this.reason = DataSlot.standalone();
         ItemStack target = this.inventory.getTarget();
         previousTarget = target;
-        this.addProperty(this.quantity).set(inventory.getQuantity());
-        this.addProperty(this.capacity).set(inventory.getCapacity());
-        this.addProperty(this.reason).set(0);
+        this.addDataSlot(this.quantity).set(inventory.getQuantity());
+        this.addDataSlot(this.capacity).set(inventory.getCapacity());
+        this.addDataSlot(this.reason).set(0);
         setReason(target);
     }
 
     @Override
-    public void sendContentUpdates() {
-        super.sendContentUpdates();
+    public void broadcastChanges() {
+        super.broadcastChanges();
 
-        if (!warningSent && player instanceof ServerPlayerEntity serverPlayerEntity && world instanceof ServerWorld serverWorld) {
+        if (!warningSent && player instanceof ServerPlayer serverPlayerEntity && world instanceof ServerLevel serverWorld) {
             sendWarningPacket(previousTarget, serverWorld, serverPlayerEntity, true);
             warningSent = true;
         }
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+    public boolean stillValid(Player player) {
+        return this.inventory.stillValid(player);
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int invSlot) {
+    public ItemStack quickMoveStack(Player player, int invSlot) {
         ItemStack newStack = ItemStack.EMPTY;
         Slot slot = this.slots.get(invSlot);
-        if (slot != null && slot.hasStack()) {
-            ItemStack originalStack = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack originalStack = slot.getItem();
             newStack = originalStack.copy();
-            if (invSlot < this.inventory.size()) {
-                if (!this.insertItem(originalStack, this.inventory.size(), this.slots.size(), true)) { // FROM VESSEL TO INVENTORY
+            if (invSlot < this.inventory.getContainerSize()) {
+                if (!this.moveItemStackTo(originalStack, this.inventory.getContainerSize(), this.slots.size(), true)) { // FROM VESSEL TO INVENTORY
                     return ItemStack.EMPTY;
                 }
             }
@@ -114,9 +110,9 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             // WHICH WE DON'T CALL ON QUICK MOVE ACTION FROM PLAYER INVENTORY.
 
             if (originalStack.isEmpty()) {
-                slot.setStack(ItemStack.EMPTY);
+                slot.setByPlayer(ItemStack.EMPTY);
             } else {
-                slot.markDirty();
+                slot.setChanged();
             }
         }
 
@@ -124,34 +120,34 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+    public void clicked(int slotIndex, int button, ContainerInput actionType, Player player) {
         ItemStack stack = isInsertAction(slotIndex, button, actionType, player);
         if (!stack.isEmpty()) {
             try {
                 onContainerInsertClick(slotIndex, button, actionType, player, stack);
             } catch (Exception var8) {
                 Exception exception = var8;
-                CrashReport crashReport = CrashReport.create(exception, "Container click");
-                CrashReportSection crashReportSection = crashReport.addElement("Click info");
-                crashReportSection.add("Menu Type", () -> {
-                    return ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER != null ? Registries.SCREEN_HANDLER.getId(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER).toString() : "<no type>";
+                CrashReport crashReport = CrashReport.forThrowable(exception, "Container click");
+                CrashReportCategory crashReportSection = crashReport.addCategory("Click info");
+                crashReportSection.setDetail("Menu Type", () -> {
+                    return ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER != null ? BuiltInRegistries.MENU.getKey(ModScreens.RESEARCH_VESSEL_SCREEN_HANDLER).toString() : "<no type>";
                 });
-                crashReportSection.add("Menu Class", () -> {
+                crashReportSection.setDetail("Menu Class", () -> {
                     return this.getClass().getCanonicalName();
                 });
-                crashReportSection.add("Slot Count", this.slots.size());
-                crashReportSection.add("Slot", slotIndex);
-                crashReportSection.add("Button", button);
-                crashReportSection.add("Type", actionType);
-                throw new CrashException(crashReport);
+                crashReportSection.setDetail("Slot Count", this.slots.size());
+                crashReportSection.setDetail("Slot", slotIndex);
+                crashReportSection.setDetail("Button", button);
+                crashReportSection.setDetail("Type", actionType);
+                throw new ReportedException(crashReport);
             }
         } else {
-            super.onSlotClick(slotIndex, button, actionType, player);
+            super.clicked(slotIndex, button, actionType, player);
             ItemStack target = inventory.getTarget();
             this.inventory.refactorInventory(target);
         }
 
-        if (this.world instanceof ServerWorld serverWorld && this.player instanceof ServerPlayerEntity serverPlayer) {
+        if (this.world instanceof ServerLevel serverWorld && this.player instanceof ServerPlayer serverPlayer) {
             ItemStack target = this.inventory.getTarget();
             sendWarningPacket(target, serverWorld, serverPlayer);
             setReason(target);
@@ -160,39 +156,39 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         }
     }
 
-    private ItemStack isInsertAction(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
-        if (slotIndex < this.inventory.size() && slotIndex != -999) {
-            if (actionType != SlotActionType.THROW) {
+    private ItemStack isInsertAction(int slotIndex, int button, ContainerInput actionType, Player player) {
+        if (slotIndex < this.inventory.getContainerSize() && slotIndex != -999) {
+            if (actionType != ContainerInput.THROW) {
                 ItemStack stack;
-                if (actionType == SlotActionType.SWAP && (button >= 0 && button < 9 || button == 40)) { // Press F or 0-9
-                    stack = player.getInventory().getStack(button);
+                if (actionType == ContainerInput.SWAP && (button >= 0 && button < 9 || button == 40)) { // Press F or 0-9
+                    stack = player.getInventory().getItem(button);
                 } else {
-                    stack = this.getCursorStack();
+                    stack = this.getCarried();
                 }
 
                 return stack;
             }
-        } else if (slotIndex >= this.inventory.size()) {
-            if (actionType == SlotActionType.QUICK_MOVE) {
+        } else if (slotIndex >= this.inventory.getContainerSize()) {
+            if (actionType == ContainerInput.QUICK_MOVE) {
                 Slot slot = this.slots.get(slotIndex);
-                return slot.getStack();
+                return slot.getItem();
             }
         }
         return ItemStack.EMPTY;
     }
 
-    private void onContainerInsertClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, ItemStack stack) {
+    private void onContainerInsertClick(int slotIndex, int button, ContainerInput actionType, Player player, ItemStack stack) {
         if (!ResearchVesselSlot.canInsertItem(stack)) {
             return;
         }
 
-        if (actionType == SlotActionType.SWAP && (button == 40)) { // BLOCK SWAP FROM F KEY BECAUSE OF WEIRD BUG.
+        if (actionType == ContainerInput.SWAP && (button == 40)) { // BLOCK SWAP FROM F KEY BECAUSE OF WEIRD BUG.
             return;
         }
 
-        ClickType clickType = button == 0 ? ClickType.LEFT : ClickType.RIGHT;
+        ClickAction clickType = button == 0 ? ClickAction.PRIMARY : ClickAction.SECONDARY;
         ItemStack inputStack;
-        if (clickType == ClickType.RIGHT) {
+        if (clickType == ClickAction.SECONDARY) {
             inputStack = stack.copyWithCount(1);
         } else {
             inputStack = stack;
@@ -201,11 +197,11 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         int inserted = 0;
         if (inventory.isEmpty()) {
             boolean canInsert = true;
-            if (stack.isDamageable()) {
-                int damage = stack.getDamage();
+            if (stack.isDamageableItem()) {
+                int damage = stack.getDamageValue();
                 int maxDamage = stack.getMaxDamage();
                 canInsert = damage == 0;
-            } else if (stack.hasEnchantments()) {
+            } else if (stack.isEnchanted()) {
                 canInsert = false;
             }
 
@@ -215,30 +211,30 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             this.inventory.getTarget();
         } else {
             ItemStack target = this.inventory.getTarget().copy();
-            target.remove(DataComponentTypes.REPAIR_COST);
+            target.remove(DataComponents.REPAIR_COST);
             ItemStack inputStackCopy = inputStack.copy();
-            inputStackCopy.remove(DataComponentTypes.REPAIR_COST);
-            if (ItemStack.areItemsAndComponentsEqual(target, inputStackCopy)) {
+            inputStackCopy.remove(DataComponents.REPAIR_COST);
+            if (ItemStack.isSameItemSameComponents(target, inputStackCopy)) {
                 inserted = inventory.insertIntoInventory(inputStack);
             }
         }
-        stack.decrement(inserted);
+        stack.shrink(inserted);
     }
 
     private void setReason(ItemStack target) {
         EnderArchiveScreenHandler.researchInvalidReason r = EnderArchiveScreenHandler.researchInvalidReason.VALID;
-        if (ResearchConfig.RESEARCH_BLOCKED.contains(Registries.ITEM.getId(target.getItem()))) {
+        if (ResearchConfig.RESEARCH_BLOCKED.contains(BuiltInRegistries.ITEM.getKey(target.getItem()))) {
             r = EnderArchiveScreenHandler.researchInvalidReason.BLOCKED;
-        } else if (ResearchConfig.RESEARCH_PROHIBITED.contains(Registries.ITEM.getId(target.getItem()))) {
+        } else if (ResearchConfig.RESEARCH_PROHIBITED.contains(BuiltInRegistries.ITEM.getKey(target.getItem()))) {
             r = EnderArchiveScreenHandler.researchInvalidReason.PROHIBITED;
         }
         this.reason.set(r.ordinal());
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
+    public void removed(Player player) {
+        super.removed(player);
+        this.inventory.stopOpen(player);
     }
 
     public int getInventoryQuantity() {
@@ -253,29 +249,29 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
         return EnderArchiveScreenHandler.researchInvalidReason.values()[this.reason.get()];
     }
 
-    private void sendWarningPacket(ItemStack target, ServerWorld serverWorld, ServerPlayerEntity serverPlayer, boolean init) {
-        if (!ItemStack.areItemsAndComponentsEqual(target, previousTarget) || init) {
+    private void sendWarningPacket(ItemStack target, ServerLevel serverWorld, ServerPlayer serverPlayer, boolean init) {
+        if (!ItemStack.isSameItemSameComponents(target, previousTarget) || init) {
             previousTarget = target;
             PlayerUnlocksData playerUnlocksData = StateSaverAndLoader.getPlayerState(player);
             List<Identifier> prerequisites = ResearchConfig.RESEARCH_PREREQUISITES.getOrDefault(
-                    Registries.ITEM.getId(target.getItem()), new ArrayList<Identifier>()
+                    BuiltInRegistries.ITEM.getKey(target.getItem()), new ArrayList<Identifier>()
             );
-            ArrayList<Text> prereqs = new ArrayList<>();
+            ArrayList<Component> prereqs = new ArrayList<>();
             if (!prerequisites.isEmpty()) {
                 for (Identifier id : prerequisites) {
-                    ItemStack prereqStack = new ItemStack(Registries.ITEM.get(id), 1);
+                    ItemStack prereqStack = new ItemStack(BuiltInRegistries.ITEM.getValue(id), 1);
                     if (!playerUnlocksData.isUnlocked(prereqStack,
-                            serverWorld.getGameRules().getValue(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
+                            serverWorld.getGameRules().get(Journeycreative.RESEARCH_ITEMS_UNLOCKED))) {
                         prereqs.add(prereqStack.getItemName());
                     }
                 }
             }
             if (!prereqs.isEmpty()) {
-                MutableText prereqText = Text.empty();
-                prereqText.append(Text.literal("["));
-                prereqText.append(Texts.join(prereqs, Text.literal(", ")));
-                prereqText.append(Text.literal("]"));
-                Text warning = Text.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqText, target.getItemName());
+                MutableComponent prereqText = Component.empty();
+                prereqText.append(Component.literal("["));
+                prereqText.append(ComponentUtils.formatList(prereqs, Component.literal(", ")));
+                prereqText.append(Component.literal("]"));
+                Component warning = Component.translatable("item.journeycreative.research_certificate.need_prerequisite", prereqText, target.getItemName());
                 this.warning = warning;
                 ServerPlayNetworking.send(
                         serverPlayer,
@@ -284,21 +280,36 @@ public class ResearchVesselScreenHandler extends ScreenHandler {
             } else {
                 ServerPlayNetworking.send(
                         serverPlayer,
-                        new JourneyNetworking.ItemWarningMessage(Text.empty())
+                        new JourneyNetworking.ItemWarningMessage(Component.empty())
                 );
             }
         }
     }
 
-    private void sendWarningPacket(ItemStack target, ServerWorld serverWorld, ServerPlayerEntity serverPlayer) {
+    private void sendWarningPacket(ItemStack target, ServerLevel serverWorld, ServerPlayer serverPlayer) {
         sendWarningPacket(target, serverWorld, serverPlayer, false);
     }
 
-    public Text getWarning() {
+    public Component getWarning() {
         return warning;
     }
 
-    public void setWarning(Text warning) {
+    public void setWarning(Component warning) {
         this.warning = warning;
+    }
+
+    private void addPlayerSlots(Inventory playerInventory, int x, int y) {
+        int m;
+        int l;
+        // Player Inventory (3 rows)
+        for (m = 0; m < 3; ++m) {
+            for (l = 0; l < 9; ++l) {
+                this.addSlot(new Slot(playerInventory, l + m * 9 + 9, x + l * 18, y + m * 18));
+            }
+        }
+        // Player Hotbar
+        for (m = 0; m < 9; ++m) {
+            this.addSlot(new Slot(playerInventory, m, x + m * 18, y + 58));
+        }
     }
 }

@@ -4,11 +4,11 @@ import mod.journeycreative.keybinds.KeyInputHandler;
 import mod.journeycreative.screen.JourneyInventoryScreen;
 import mod.journeycreative.screen.ResearchVesselScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 
 public class JourneyClientNetworking {
     public static void sendGiveItem(int slot, ItemStack stack) {
@@ -19,10 +19,10 @@ public class JourneyClientNetworking {
         sendGiveItem(slot, stack);
     }
 
-    public static void dropJourneyStack(ItemStack stack, ClientPlayerEntity player) {
+    public static void dropJourneyStack(ItemStack stack, LocalPlayer player) {
         if (!stack.isEmpty()) {
             sendGiveItem(-1, stack);
-            player.getItemDropCooldown().increment();
+            player.getDropSpamThrottler().increment();
         }
     }
 
@@ -58,10 +58,10 @@ public class JourneyClientNetworking {
 
     private static void ReceiveTrashcanSync() {
         ClientPlayNetworking.registerGlobalReceiver(JourneyNetworking.SyncTrashCanPayload.ID, (payload, context) -> {
-            MinecraftClient.getInstance().execute(() -> {
-                Screen current = MinecraftClient.getInstance().currentScreen;
+            Minecraft.getInstance().execute(() -> {
+                Screen current = Minecraft.getInstance().screen;
                 if (current instanceof JourneyInventoryScreen screen) {
-                    screen.getDeleteItemSlot().setStack(payload.stack());
+                    screen.getDeleteItemSlot().setByPlayer(payload.stack());
                 }
             });
         });
@@ -70,7 +70,7 @@ public class JourneyClientNetworking {
     private static void ReceiveWarning() {
         ClientPlayNetworking.registerGlobalReceiver(JourneyNetworking.ItemWarningMessage.ID, (payload, context) -> {
             context.client().execute(() -> {
-                ScreenHandler handler = context.client().player.currentScreenHandler;
+                AbstractContainerMenu handler = context.client().player.containerMenu;
 
                 if (!(handler instanceof ResearchVesselScreenHandler rvh)) return;
 

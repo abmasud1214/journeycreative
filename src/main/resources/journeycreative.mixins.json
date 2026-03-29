@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "mod.journeycreative.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
     "BlockItemMixin"
   ],

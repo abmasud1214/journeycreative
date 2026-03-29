@@ -1,13 +1,13 @@
-accessWidener v2 named
+accessWidener v2 official
 
-accessible class net/minecraft/client/gui/screen/Screen
-accessible method net/minecraft/client/gui/screen/Screen addDrawableChild (Lnet/minecraft/client/gui/Element;)Lnet/minecraft/client/gui/Element;
+accessible class net/minecraft/client/gui/screens/Screen
+accessible method net/minecraft/client/gui/screens/Screen addRenderableWidget (Lnet/minecraft/client/gui/components/events/GuiEventListener;)Lnet/minecraft/client/gui/components/events/GuiEventListener;
+accessible method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen onMouseClickAction (Lnet/minecraft/world/inventory/Slot;Lnet/minecraft/world/inventory/ContainerInput;)V
 
-accessible method net/minecraft/client/gui/screen/ingame/HandledScreen onMouseClick (Lnet/minecraft/screen/slot/Slot;Lnet/minecraft/screen/slot/SlotActionType;)V
+accessible field net/minecraft/world/item/CreativeModeTabs CACHED_PARAMETERS Lnet/minecraft/world/item/CreativeModeTab$ItemDisplayParameters;
 
 accessible class net/minecraft/client/gui/screen/ingame/HandledScreen
-accessible field net/minecraft/client/gui/screen/ingame/HandledScreen x I
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen leftPos I
 accessible field net/minecraft/client/gui/screen/ingame/HandledScreen y I
 
 accessible field net/minecraft/item/ItemGroups displayContext Lnet/minecraft/item/ItemGroup$DisplayContext;
-
